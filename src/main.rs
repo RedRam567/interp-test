@@ -1,5 +1,6 @@
-use std::collections::VecDeque;
+mod state;
 
+use crate::state::{GameState, GlobalState};
 use interp_test::movement::Movement;
 use interp_test::time::Timer;
 use interp_test::{dbg_arrow, Player, DBG_INTERP, DBG_NOW, DBG_PREV};
@@ -18,112 +19,6 @@ const TICK_BUFFER_LEN: usize = (TICK_BUFFER_SECS * UPDATES_PER_SECOND + 0.5) as 
 const SPEED_FACTOR: f32 = 60.0 / UPDATES_PER_SECOND;
 const PLAYER_MAX_SPEED: f32 = 20.0 * SPEED_FACTOR * 1.0;
 const PLAYER_ACCEL: f32 = 5.0 * SPEED_FACTOR * SPEED_FACTOR;
-
-#[derive(Clone, Debug, PartialEq, Default)]
-struct GameState {
-    // /// Tick index, icreases every tick
-    tick_number: usize,
-    /// older ticks in front, newer in back
-    tick_state: VecDeque<TickState>,
-    // no global_state here because of (re)borrow issues
-    // cant do self.prev_tick_mut() and &self.global_state
-    // global_state: GlobalState,
-}
-
-// #[allow(dead_code)]
-impl GameState {
-    fn new() -> Self {
-        // Self::default()
-        Self {
-            tick_state: VecDeque::with_capacity(TICK_BUFFER_LEN),
-            ..Self::default()
-        }
-    }
-
-    fn init(&mut self) -> &mut Self {
-        // let player = self.tick_state.front_mut().unwrap();
-        dbg!(self.tick_state.len());
-        let mut player = Player::default();
-        player.movement.pos.x = screen_width() / 2.0;
-        player.movement.pos.y = screen_height() / 2.0;
-
-        let first_tick = TickState { player };
-        for _ in 0..self.tick_state.capacity() {
-            self.tick_state.push_back(first_tick.clone());
-            // *state = first_tick.clone()
-        }
-
-        self
-    }
-
-    fn current_tick(&self) -> &TickState {
-        self.tick_state.back().unwrap()
-    }
-    fn current_tick_mut(&mut self) -> &mut TickState {
-        self.tick_state.back_mut().unwrap()
-    }
-
-    fn prev_tick(&self) -> &TickState {
-        self.get_prev_tick(1).unwrap()
-    }
-    fn prev_tick_mut(&mut self) -> &TickState {
-        self.get_prev_tick_mut(1).unwrap()
-    }
-
-    /// Get the tick `tick` ticks in the past. 0 is current tick, 1 is previous tick.
-    fn get_prev_tick(&self, tick: usize) -> Option<&TickState> {
-        // VecDeque::back(): self.get(self.len.wrapping_sub(1))
-        self.tick_state
-            .get(self.tick_state.len().wrapping_sub(1 + tick))
-    }
-    /// Get the tick `tick` ticks in the past. 0 is current tick, 1 is previous tick.
-    fn get_prev_tick_mut(&mut self, tick: usize) -> Option<&mut TickState> {
-        // VecDeque::back_mut(): self.get_mut(self.len.wrapping_sub(1))
-        self.tick_state
-            .get_mut(self.tick_state.len().wrapping_sub(1 + tick))
-    }
-
-    fn get_tick(&self, tick_number: usize) -> Option<&TickState> {
-        let current = self.tick_number;
-        // None if tried get future tick. NOTE:CHEATS: should never happen
-        let prev = current.checked_sub(tick_number)?;
-        self.get_prev_tick(prev) // None if tried to get too old
-    }
-    fn get_tick_mut(&mut self, tick_number: usize) -> Option<&mut TickState> {
-        let current = self.tick_number;
-        // None if tried get future tick. NOTE:CHEATS: should never happen
-        let prev = current.checked_sub(tick_number)?;
-        self.get_prev_tick_mut(prev) // None if tried to get too old
-    }
-
-    /// Remove oldest tick, copy latest tick to current. Returns the now current tick
-    /// (unmodified from the now previous tick)
-    fn advance_tick(&mut self) -> &mut TickState {
-        // NOTE:PANIC: only panics when not `init()`ed
-
-        self.tick_number += 1;
-        let latest_tick = self.tick_state.back_mut().unwrap().clone();
-        self.tick_state.pop_front(); // remove oldest
-        self.tick_state.push_back(latest_tick); // copy latest
-        self.tick_state.back_mut().unwrap()
-    }
-}
-
-#[derive(Clone, Debug, PartialEq, Default)]
-struct TickState {
-    player: Player,
-}
-
-#[derive(Clone, Debug, PartialEq, Default)]
-struct GlobalState {
-    /// Store input as fast as possible here until `update()`
-    input_buffer: Vec<Vec2>,
-}
-
-// #[derive(Clone, Debug, PartialEq, Default)]
-// struct ServerState {
-
-// }
 
 #[macroquad::main("interp test")]
 async fn main() {

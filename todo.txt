@@ -1,7 +1,13 @@
-networking
-    packet loss
-    input predition
-    interp delay
+[] runtime tick editing
+[] gamestate module
+[] friction (complicated)
+
+[] networking
+    [x] ring buffer
+    [] client lerp delay (more than just 1 tick)
+    [] input predition
+    [] client and server
+    [] packet loss
 
 tick controls
 prev in movement?
