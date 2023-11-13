@@ -1,0 +1,43 @@
+networking
+    packet loss
+    input predition
+    interp delay
+
+tick controls
+prev in movement?
+
+notes:
+server needs complete copy of the world
+
+networking
+    extrapolation for 0.25s max
+    save state of world for ??? seconds for hit detection
+    newyork to perth = ~300ms
+    perth to china = ~500ms O_O
+    .25s @ 30 tps = 9
+    2s @ 60 tps = 120
+    dynamic interp?
+    dynamic tick buffer? seems unnecessary
+        I do want some sort of "free some ram button". realloc all vec buffers
+            realloc instead of resize in place to prevent mega fragementation?
+    all I think I need to copy:
+        pos, vel, accel
+        animation
+        hp
+        ...
+        status effects
+        spawning... might be better just to copy everything
+    minimum save actors and projectiles
+    "resources" like world should be fine saved once (including changed geometry)
+        game win/lose? be dumb if u died after winning
+        ai, ai director
+        inventory? I think annoying but ok for latency/failed prediction
+
+multiple levels:
+    multiple "levels" loaded at once like source 2
+    simply geometry, same coord system, no non euclidian crap (not too hard to do tho)
+    vis leafs, portals, occluders
+    simply attach/overlap vis leafs
+    for visibility, just pretend ur in the attached vis leaf
+        problem with multiple attachments, need to && both leafs pvs
+        hmm can use as optimization for leaf building? leaf groups
