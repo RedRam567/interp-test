@@ -5,7 +5,7 @@ use macroquad::window::screen_width;
 
 use interp_test::Player;
 
-use super::TICK_BUFFER_LEN;
+// use super::TICK_BUFFER_LEN;
 
 use std::collections::VecDeque;
 
@@ -28,8 +28,22 @@ impl TickSettings {
     /// Reference ticks per seconds,`speed_factor` will be scaled according to this.
     /// At 30 tps, `speed_factor` will be 2.0. At 120 tps, `speed_factor` will be 0.5
     pub const REFERENCE_TPS: f32 = 60.0;
+    const DEFAULT_BUFFER: f32 = 0.25;
+
+    /// Create and initialize
+    pub fn new(tps: f32) -> Result<Self, ()> {
+        Self {
+            tps,
+            buffer_secs: Self::DEFAULT_BUFFER,
+            tick_len_secs: Default::default(),
+            buffer_len: Default::default(),
+            speed_factor: Default::default(),
+        }
+        .calculate()
+    }
 
     pub fn is_sane(&self) -> bool {
+        return true;
         self.tps >= 10.0
             && self.buffer_secs > 0.0
             && self.buffer_len > 0
@@ -55,25 +69,32 @@ impl TickSettings {
         }
     }
 
+    /// Sets the ticks per seconds.
+    /// # Notes
+    /// You must call `Self::calculate()` after using this
+    pub fn set_tps(&mut self, tps: f32) -> &mut Self {
+        self.tps = tps;
+        self
+    }
+
+    pub fn timescale(&self) -> f32 {
+        let ideal_tick_len = self.tps.recip();
+        let actual = self.tick_len_secs;
+        ideal_tick_len / actual
+    }
+
     /// Scale the length of ticks for slow motion or fast forward.
-    pub fn set_timescale(&mut self, timescale: f32) {
+    pub fn set_timescale(&mut self, timescale: f32) -> &mut Self {
         let ideal_tick_len = self.tps.recip();
         let scaled_tick_len = ideal_tick_len * timescale.recip();
         self.tick_len_secs = scaled_tick_len;
+        self
     }
 }
 
 impl Default for TickSettings {
     fn default() -> Self {
-        Self {
-            tps: 60.0,
-            buffer_secs: 0.25,
-            tick_len_secs: Default::default(),
-            buffer_len: Default::default(),
-            speed_factor: Default::default(),
-        }
-        .calculate()
-        .unwrap()
+        Self::new(60.0).unwrap()
     }
 }
 
@@ -87,6 +108,16 @@ pub struct TickState {
 pub struct GlobalState {
     /// Store input as fast as possible here until `update()`
     pub input_buffer: Vec<Vec2>,
+    pub tick_settings: TickSettings,
+}
+
+impl GlobalState {
+    pub fn new(tps: f32) -> Result<Self, ()> {
+        Ok(Self {
+            input_buffer: Default::default(),
+            tick_settings: TickSettings::new(tps)?,
+        })
+    }
 }
 
 // #[derive(Clone, Debug, PartialEq, Default)]
@@ -107,9 +138,9 @@ pub struct GameState {
 
 // #[allow(dead_code)]
 impl GameState {
-    pub fn new() -> Self {
+    pub fn new(buffer_len: usize) -> Self {
         Self {
-            tick_state: VecDeque::with_capacity(TICK_BUFFER_LEN),
+            tick_state: VecDeque::with_capacity(buffer_len),
             ..Self::default()
         }
     }
@@ -128,6 +159,29 @@ impl GameState {
         }
 
         self
+    }
+
+    // pub fn game_time(&self, tick_len_secs: f32) -> f64 {
+    //     // premptive f64
+    //     self.tick_number as f64 * tick_len_secs as f64
+    // }
+
+    /// Returns whole seconds and ticks remainder passed
+    pub fn gametime_passed(&self, tps: f32) -> (usize, usize) {
+        // premptive f64
+        let tick = self.tick_number;
+        // TODO: this much prec not needed
+        let (gametime_secs, gametime_ticks) = if tps.fract() == 0.0 {
+            let tps = tps as usize;
+            let n = tick / tps;
+            let rem = tick % tps;
+            (n, rem)
+        } else {
+            let n = (tick as f64 / tps as f64) as usize;
+            let rem = (tick as f64 % tps as f64) as usize;
+            (n, rem)
+        };
+        (gametime_secs, gametime_ticks)
     }
 
     pub fn current_tick(&self) -> &TickState {

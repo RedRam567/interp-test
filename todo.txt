@@ -1,5 +1,5 @@
-[] runtime tick editing
-[] gamestate module
+[x] runtime tick editing
+[x] gamestate module
 [] friction (complicated)
 
 [] networking

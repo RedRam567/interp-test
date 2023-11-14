@@ -70,6 +70,18 @@ impl Player {
     const PLAYER_SIZE: f32 = 10.0;
     // const PLAYER_ACCEL: f32 = 1.0;
     const PLAYER_COLOR: Color = BLACK;
+    // const PLAYER_MAX_SPEED: f32 = 20.0 * SPEED_FACTOR * 1.0;
+    // const PLAYER_ACCEL: f32 = 5.0 * SPEED_FACTOR * SPEED_FACTOR;
+    const MAX_SPEED: f32 = 20.0;
+    const ACCEL: f32 = 5.0;
+
+    pub fn max_speed(speed_factor: f32) -> f32 {
+        Self::MAX_SPEED * speed_factor
+    }
+
+    pub fn accel(speed_factor: f32) -> f32 {
+        Self::ACCEL * (speed_factor * speed_factor)
+    }
 
     pub fn handle_movement(&mut self, desired_dir: &[Vec2], accel: f32) -> &mut Self {
         let dir = average_input(desired_dir);
