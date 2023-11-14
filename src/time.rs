@@ -8,10 +8,7 @@ pub struct Timer {
 
 impl Timer {
     pub fn new(length: f32) -> Self {
-        Self {
-            time: 0.0,
-            start_time: length,
-        }
+        Self { time: 0.0, start_time: length }
     }
 
     pub fn decrement(&mut self, time: f32) -> bool {

@@ -56,12 +56,7 @@ impl TickSettings {
         let buffer_len = (self.buffer_secs * self.tps).ceil() as usize;
         let speed_factor = Self::REFERENCE_TPS / self.tps;
 
-        let new = Self {
-            tick_len_secs,
-            buffer_len,
-            speed_factor,
-            ..*self
-        };
+        let new = Self { tick_len_secs, buffer_len, speed_factor, ..*self };
         if new.is_sane() {
             Ok(new)
         } else {
@@ -113,10 +108,7 @@ pub struct GlobalState {
 
 impl GlobalState {
     pub fn new(tps: f32) -> Result<Self, ()> {
-        Ok(Self {
-            input_buffer: Default::default(),
-            tick_settings: TickSettings::new(tps)?,
-        })
+        Ok(Self { input_buffer: Default::default(), tick_settings: TickSettings::new(tps)? })
     }
 }
 
@@ -139,10 +131,7 @@ pub struct GameState {
 // #[allow(dead_code)]
 impl GameState {
     pub fn new(buffer_len: usize) -> Self {
-        Self {
-            tick_state: VecDeque::with_capacity(buffer_len),
-            ..Self::default()
-        }
+        Self { tick_state: VecDeque::with_capacity(buffer_len), ..Self::default() }
     }
 
     pub fn init(&mut self) -> &mut Self {
@@ -201,14 +190,12 @@ impl GameState {
     /// Get the tick `tick` ticks in the past. 0 is current tick, 1 is previous tick.
     pub(crate) fn get_prev_tick(&self, tick: usize) -> Option<&TickState> {
         // VecDeque::back(): self.get(self.len.wrapping_sub(1))
-        self.tick_state
-            .get(self.tick_state.len().wrapping_sub(1 + tick))
+        self.tick_state.get(self.tick_state.len().wrapping_sub(1 + tick))
     }
     /// Get the tick `tick` ticks in the past. 0 is current tick, 1 is previous tick.
     pub(crate) fn get_prev_tick_mut(&mut self, tick: usize) -> Option<&mut TickState> {
         // VecDeque::back_mut(): self.get_mut(self.len.wrapping_sub(1))
-        self.tick_state
-            .get_mut(self.tick_state.len().wrapping_sub(1 + tick))
+        self.tick_state.get_mut(self.tick_state.len().wrapping_sub(1 + tick))
     }
 
     pub(crate) fn get_tick(&self, tick_number: usize) -> Option<&TickState> {

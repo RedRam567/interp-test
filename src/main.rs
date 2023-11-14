@@ -1,5 +1,5 @@
-mod state;
 mod dbg;
+mod state;
 
 use crate::state::{GameState, GlobalState, TickSettings};
 use interp_test::movement::Movement;

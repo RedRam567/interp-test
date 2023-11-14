@@ -10,18 +10,9 @@ use crate::movement::Movement;
 const DBG_OPACITY: f32 = 0.25;
 const DBG_OPACITY2: f32 = 0.5;
 // const DBG_OPACITY: f32 = 0.0;
-pub const DBG_PREV: Color = Color {
-    a: DBG_OPACITY,
-    ..RED
-};
-pub const DBG_NOW: Color = Color {
-    a: DBG_OPACITY,
-    ..GREEN
-};
-pub const DBG_INTERP: Color = Color {
-    a: DBG_OPACITY2,
-    ..BLUE
-};
+pub const DBG_PREV: Color = Color { a: DBG_OPACITY, ..RED };
+pub const DBG_NOW: Color = Color { a: DBG_OPACITY, ..GREEN };
+pub const DBG_INTERP: Color = Color { a: DBG_OPACITY2, ..BLUE };
 
 pub fn dbg_circle(pos: Vec2) {
     draw_circle(pos.x, pos.y, 5.0, WHITE);

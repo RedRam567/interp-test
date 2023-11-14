@@ -12,6 +12,7 @@
 //! ```
 //!
 //! See <https://users.rust-lang.org/t/conditional-compilation-for-debug-release/1098/6>
+// TODO:DOCS: env vars
 
 // TODO: where to even see this documentation? :p
 
@@ -31,19 +32,13 @@ fn main() {
     println!("cargo:rustc-env=PROFILE={}", env::var("PROFILE").unwrap());
     println!("cargo:rustc-env=HOST={}", env::var("HOST").unwrap());
     // make a little bit prettier
-    let target = env::var("TARGET")
-        .unwrap()
-        .to_string()
-        .replace("unknown-", "");
+    let target = env::var("TARGET").unwrap().to_string().replace("unknown-", "");
     println!("cargo:rustc-env=TARGET={}", target);
-
-    // Mon Nov 13 21:54:14 -8:00 2023
-    // eprintln!("{}", chrono::offset::Local::now().format("%a %b %d %H:%M:%S %:z %Y"));
 
     // Chronos because Windows has the worst cli ever. Just run the `date` command and find out
     // NOTE: broo I just realized I had my Windows vm open and there was a freaking fullscreen
     // ad for edge. No respect.
-    // Mon Y-M-D H:M:S -8:00 // as far as I can tell, always English days of weeks
+    // Mon Y-M-D H:M:S -8:00 // as far as I can tell always English days of weeks
     let date_time = chrono::offset::Local::now().format("%a %Y-%m-%d %H:%M:%S %:z");
     println!("cargo:rustc-env=BUILD_DATETIME={}", date_time);
 }
