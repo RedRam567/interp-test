@@ -2,14 +2,21 @@
 name = "interp_test"
 version = "0.1.0"
 edition = "2021"
+build = "build.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+# macroquad = { version = "0.4.4", features = ["audio"] }
 bezier-nd = "0.5.0"
 geo-nd = "0.5.0"
-# macroquad = { version = "0.4.4", features = ["audio"] }
 macroquad = { version = "0.4.4" }
+git-tag = { path = "./git-tag" }
+
+[build-dependencies]
+chrono = "0.4.31"
+
+# [dev-dependencies]
 
 # https://doc.rust-lang.org/cargo/reference/profiles.html#overrides-and-generics
 [profile.dev]
