@@ -1,6 +1,8 @@
 pub mod movement;
 pub mod spline;
 pub mod time;
+pub mod state;
+
 // pub mod dbg;
 
 use macroquad::prelude::*;

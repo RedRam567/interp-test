@@ -1,4 +1,4 @@
-use crate::state::{GameState, GlobalState, TickSettings};
+use interp_test::state::{GameState, GlobalState, TickSettings};
 use macroquad::prelude::*;
 use std::fmt::{Display, Error as FmtError, Write};
 

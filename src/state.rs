@@ -1,9 +1,9 @@
+use crate::Player;
 use macroquad::math::Vec2;
 use macroquad::window::screen_height;
 
 use macroquad::window::screen_width;
 
-use interp_test::Player;
 
 // use super::TICK_BUFFER_LEN;
 
@@ -49,7 +49,7 @@ impl TickSettings {
             && self.speed_factor.is_normal()
     }
 
-    // calculate rest of values from `tps` and `buffer_secs` and `REFERENCE_TPS`
+    /// Calculate rest of values from `tps` and `buffer_secs` and `REFERENCE_TPS`
     pub fn calculate(&self) -> Result<Self, ()> {
         let tick_len_secs = self.tps.recip();
         let buffer_len = (self.buffer_secs * self.tps).ceil() as usize;
@@ -63,12 +63,14 @@ impl TickSettings {
         }
     }
 
-    /// Sets the ticks per seconds.
-    /// # Notes
-    /// You must call `Self::calculate()` after using this
-    pub fn set_tps(&mut self, tps: f32) -> &mut Self {
-        self.tps = tps;
-        self
+    /// Sets the ticks per seconds. Recalculates, preserves timescale.
+    pub fn set_tps(&self, tps: f32) -> Result<Self, ()> {
+        let mut new = self.clone();
+        let timescale = self.timescale();
+        new.tps = tps;
+        new = new.calculate()?;
+        new.set_timescale(timescale);
+        Ok(new)
     }
 
     pub fn timescale(&self) -> f32 {
@@ -214,7 +216,7 @@ impl GameState {
 
     /// Remove oldest tick, copy latest tick to current. Returns the now current tick
     /// (unmodified from the now previous tick)
-    pub(crate) fn advance_tick(&mut self) -> &mut TickState {
+    pub fn advance_tick(&mut self) -> &mut TickState {
         // NOTE:PANIC: only panics when not `init()`ed
 
         self.tick_number += 1;

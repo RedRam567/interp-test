@@ -1,7 +1,6 @@
 mod dbg;
-mod state;
 
-use crate::state::{GameState, GlobalState};
+use interp_test::state::{GameState, GlobalState};
 use interp_test::movement::Movement;
 use interp_test::time::Timer;
 use interp_test::{dbg_arrow, Player, DBG_INTERP, DBG_NOW, DBG_PREV};
@@ -78,50 +77,37 @@ async fn main() {
         // Modify timescale
         if is_key_pressed(KeyCode::F3) || is_key_pressed(KeyCode::KpSubtract) {
             let tick_settings = &mut global_state.tick_settings;
-            let mut timescale = tick_settings.timescale() / 1.1;
+            let mut timescale = tick_settings.timescale() / 1.25;
             if (timescale - 1.0).abs() < 0.05 {
                 timescale = 1.0;
             }
-            dbg!(timescale);
             tick_settings.set_timescale(timescale);
-            update_timer.start_time = tick_settings.tick_len_secs;
+            update_timer.update_from_tick_settings(tick_settings);
         }
 
         if is_key_pressed(KeyCode::F4) || is_key_pressed(KeyCode::KpAdd) {
             let tick_settings = &mut global_state.tick_settings;
-            let mut timescale = tick_settings.timescale() * 1.1;
+            let mut timescale = tick_settings.timescale() * 1.25;
             if (timescale - 1.0).abs() < 0.05 {
                 timescale = 1.0;
             }
-            dbg!(timescale);
             tick_settings.set_timescale(timescale);
-            update_timer.start_time = tick_settings.tick_len_secs;
+            update_timer.update_from_tick_settings(tick_settings);
         }
 
         if is_key_pressed(KeyCode::F5) {
-            let mut tick_settings = global_state.tick_settings.clone();
-            let new_tps = tick_settings.tps as f64 - 5.0;
-            tick_settings.tps = new_tps as f32;
-            if let Ok(new) = tick_settings.calculate() {
-                global_state.tick_settings = new;
-                update_timer.start_time = global_state.tick_settings.tick_len_secs;
-                eprintln!("new tps: {}", new_tps);
-            } else {
-                eprintln!("{} is insane tps, rejecting", new_tps)
+            let tick_settings = &mut global_state.tick_settings;
+            if let Ok(new) = tick_settings.set_tps(tick_settings.tps - 5.0) {
+                *tick_settings = new;
+                update_timer.update_from_tick_settings(tick_settings);
             }
         }
 
         if is_key_pressed(KeyCode::F6) {
-            let mut tick_settings = global_state.tick_settings.clone();
-            let new_tps = tick_settings.tps as f64 + 5.0;
-            dbg!(new_tps);
-            tick_settings.tps = new_tps as f32;
-            if let Ok(new) = tick_settings.calculate() {
-                global_state.tick_settings = new;
-                update_timer.start_time = global_state.tick_settings.tick_len_secs;
-                eprintln!("new tps: {}", new_tps);
-            } else {
-                eprintln!("{} is insane tps, rejecting", new_tps)
+            let tick_settings = &mut global_state.tick_settings;
+            if let Ok(new) = tick_settings.set_tps(tick_settings.tps + 5.0) {
+                *tick_settings = new;
+                update_timer.update_from_tick_settings(tick_settings);
             }
         }
 
@@ -187,11 +173,11 @@ fn draw(game: &GameState, global_state: &GlobalState, t: f32) {
 
     // FIXME: increasing tps during runtime past initial value crashes
     // dbg tick buffer
-    for i in (0..global_state.tick_settings.buffer_len - 1).rev() {
-        let prev = &game.get_prev_tick(i + 1).unwrap().player;
-        let next = &game.get_prev_tick(i).unwrap().player;
-        next.draw(prev, t);
-    }
+    // for i in (0..global_state.tick_settings.buffer_len - 1).rev() {
+    //     let prev = &game.get_prev_tick(i + 1).unwrap().player;
+    //     let next = &game.get_prev_tick(i).unwrap().player;
+    //     next.draw(prev, t);
+    // }
 
     dbg::dbg_info(game, global_state, t);
 }

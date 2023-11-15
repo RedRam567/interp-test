@@ -1,3 +1,5 @@
+use crate::state::TickSettings;
+
 // TODO: better default
 /// Decreasing timer with automatic wrapping and looping.
 #[derive(Clone, Debug, PartialEq, Default)]
@@ -20,5 +22,10 @@ impl Timer {
         }
 
         false
+    }
+
+    pub fn update_from_tick_settings(&mut self, tick_settings: &TickSettings) -> &mut Self {
+        self.start_time = tick_settings.tick_len_secs;
+        self
     }
 }
