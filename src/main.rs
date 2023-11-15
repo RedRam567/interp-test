@@ -35,6 +35,7 @@ async fn main() {
     // let mut prev_game_state = game_state.clone();
     // let game = &mut game_state;
     // let mut prev_game = &mut prev_game_state;
+    // TODO: move timer into state
     let mut update_timer = Timer::new(global_state.tick_settings.tick_len_secs);
     let mut dont_interpolate = false;
     let mut is_fullscreen = false;
@@ -63,6 +64,7 @@ async fn main() {
             break;
         }
 
+        // fullscreening
         // NOTE: unfullscreening is broken on x11 in macroquad (wtf?), also fullscreening loses
         // focus because window hides for 1 micro second
         // NOTE: fullscreen keybind in Kwin works to unfullscreen tho
@@ -73,12 +75,14 @@ async fn main() {
             set_fullscreen(is_fullscreen);
         }
 
+        // Modify timescale
         if is_key_pressed(KeyCode::F3) || is_key_pressed(KeyCode::KpSubtract) {
             let tick_settings = &mut global_state.tick_settings;
             let mut timescale = tick_settings.timescale() / 1.1;
             if (timescale - 1.0).abs() < 0.05 {
                 timescale = 1.0;
             }
+            dbg!(timescale);
             tick_settings.set_timescale(timescale);
             update_timer.start_time = tick_settings.tick_len_secs;
         }
@@ -89,8 +93,36 @@ async fn main() {
             if (timescale - 1.0).abs() < 0.05 {
                 timescale = 1.0;
             }
+            dbg!(timescale);
             tick_settings.set_timescale(timescale);
             update_timer.start_time = tick_settings.tick_len_secs;
+        }
+
+        if is_key_pressed(KeyCode::F5) {
+            let mut tick_settings = global_state.tick_settings.clone();
+            let new_tps = tick_settings.tps as f64 - 5.0;
+            tick_settings.tps = new_tps as f32;
+            if let Ok(new) = tick_settings.calculate() {
+                global_state.tick_settings = new;
+                update_timer.start_time = global_state.tick_settings.tick_len_secs;
+                eprintln!("new tps: {}", new_tps);
+            } else {
+                eprintln!("{} is insane tps, rejecting", new_tps)
+            }
+        }
+
+        if is_key_pressed(KeyCode::F6) {
+            let mut tick_settings = global_state.tick_settings.clone();
+            let new_tps = tick_settings.tps as f64 + 5.0;
+            dbg!(new_tps);
+            tick_settings.tps = new_tps as f32;
+            if let Ok(new) = tick_settings.calculate() {
+                global_state.tick_settings = new;
+                update_timer.start_time = global_state.tick_settings.tick_len_secs;
+                eprintln!("new tps: {}", new_tps);
+            } else {
+                eprintln!("{} is insane tps, rejecting", new_tps)
+            }
         }
 
         // Input and Update
@@ -153,6 +185,7 @@ fn draw(game: &GameState, global_state: &GlobalState, t: f32) {
     dbg_arrow(interped_pos, current.player.movement.accel, DBG_PREV);
     dbg_arrow(interped_pos, current.player.movement.vel, DBG_NOW);
 
+    // FIXME: increasing tps during runtime past initial value crashes
     // dbg tick buffer
     for i in (0..global_state.tick_settings.buffer_len - 1).rev() {
         let prev = &game.get_prev_tick(i + 1).unwrap().player;
