@@ -43,7 +43,6 @@ impl TickSettings {
     }
 
     pub fn is_sane(&self) -> bool {
-        return true;
         self.tps >= 10.0
             && self.buffer_secs > 0.0
             && self.buffer_len > 0
