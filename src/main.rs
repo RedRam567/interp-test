@@ -1,11 +1,10 @@
 mod dbg;
 mod state;
 
-use crate::state::{GameState, GlobalState, TickSettings};
+use crate::state::{GameState, GlobalState};
 use interp_test::movement::Movement;
 use interp_test::time::Timer;
 use interp_test::{dbg_arrow, Player, DBG_INTERP, DBG_NOW, DBG_PREV};
-use macroquad::miniquad::window::set_window_size;
 use macroquad::prelude::*;
 use macroquad::window::{screen_height, screen_width};
 

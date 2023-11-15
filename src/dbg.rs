@@ -10,13 +10,11 @@ use const_format::formatcp;
 // TODO: wine host os detection (for analytics)
 
 /// Convert an allocation-less formater fn to a string, ignoring all errors.
-fn to_string<F, E>(mut f: F) -> String
+fn to_string<F, E>(f: F) -> String
 where
     F: FnMut(&mut dyn Write) -> Result<(), E>,
 {
-    let mut buffer = String::new();
-    _ = f(&mut buffer);
-    buffer
+    try_to_string(f).unwrap_or_default()
 }
 
 /// Convert an allocation-less formater fn to a string.
@@ -95,7 +93,7 @@ impl Display for DaysHms {
 // ping
 // lerp
 #[rustfmt::skip]
-pub fn dbg_info(game: &GameState, global_state: &GlobalState, t: f32) {
+pub fn dbg_info(game: &GameState, global_state: &GlobalState, _t: f32) {
     // version
     // WINDOW RES inner resolution REFRESH LOGICAL RESOLUTION (scaling)
     // fps, frametime MIN MAX AVG VARIENCE

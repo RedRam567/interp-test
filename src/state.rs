@@ -128,7 +128,7 @@ pub struct GameState {
     // global_state: GlobalState,
 }
 
-// #[allow(dead_code)]
+#[allow(dead_code)]
 impl GameState {
     pub fn new(buffer_len: usize) -> Self {
         Self { tick_state: VecDeque::with_capacity(buffer_len), ..Self::default() }
@@ -187,6 +187,8 @@ impl GameState {
         self.get_prev_tick_mut(1).unwrap()
     }
 
+    // TODO: decide on api, get tick n, or get tick that is n ticks in the past
+    
     /// Get the tick `tick` ticks in the past. 0 is current tick, 1 is previous tick.
     pub(crate) fn get_prev_tick(&self, tick: usize) -> Option<&TickState> {
         // VecDeque::back(): self.get(self.len.wrapping_sub(1))
