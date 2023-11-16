@@ -6,6 +6,17 @@ use macroquad::math::Vec2;
 
 use super::lerp_fast2;
 
+// "3" types of friction
+// static // ignore
+// ground friction (relative to normal)
+// air resitance
+// f = 0.5*desity * v*v * drag coeff * area
+// drag coeff = shape and reylond number
+// eh most games ignore air resitance (maybe only while on ground)
+// just do constant + constant * v (or v*v)
+// other form: Pd = Fd
+// very slow = v, fast = v*v
+
 #[derive(Clone, Debug, PartialEq, Default)]
 pub struct Movement {
     /// current pos
@@ -20,14 +31,33 @@ pub struct Movement {
 }
 
 impl Movement {
+    // TODO: movement2 class, with friction builtin
+    pub fn step(&mut self, max_speed: f32, base_friction: f32, scaling_friction: f32) -> &mut Self {
+        self.apply_friction(base_friction, scaling_friction).step_frictionless(max_speed)
+    }
+
     /// Update player velocity and position
-    pub fn step(&mut self, max_speed: f32) -> &mut Self {
+    pub fn step_frictionless(&mut self, max_speed: f32) -> &mut Self {
         // self.prev_pos = self.pos;
         // self.prev_vel = self.vel;
         // self.prev_accel = self.accel;
         self.step_vel().limit_speed(max_speed).step_pos();
         // self.step_pos().step_vel();
         // if self.
+        self
+    }
+
+    pub(crate) fn apply_friction(&mut self, base: f32, scaling: f32) -> &mut Self {
+        // const EPSILON: f32 = 0.1;
+        // self.vel += accel;
+        let dir = self.vel.normalize_or_zero(); // TODO: doesn't scale with speed factor
+        let speed = self.vel.length();
+        let amount = (base + scaling * speed).min(speed); // cap to speed so dont go negative
+        let friction = dir * amount;
+
+        dbg!(friction);
+
+        self.vel -= friction;
         self
     }
 

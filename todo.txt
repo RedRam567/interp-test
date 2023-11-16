@@ -1,6 +1,7 @@
 [x] runtime tick editing
 [x] gamestate module
-[] friction (complicated)
+[x] friction (complicated)
+[] fix dynamic tps (tick buffer)
 
 [] networking
     [x] ring buffer

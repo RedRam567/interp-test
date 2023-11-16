@@ -66,8 +66,13 @@ impl Player {
     const PLAYER_COLOR: Color = BLACK;
     // const PLAYER_MAX_SPEED: f32 = 20.0 * SPEED_FACTOR * 1.0;
     // const PLAYER_ACCEL: f32 = 5.0 * SPEED_FACTOR * SPEED_FACTOR;
-    const MAX_SPEED: f32 = 20.0;
+    // const MAX_SPEED: f32 = 20.0;
+    const MAX_SPEED: f32 = 15.0;
     const ACCEL: f32 = 5.0;
+    const BASE_FRICTION: f32 = 0.5;
+    const SCALING_FRICTION: f32 = 5e-2;
+    // const BASE_FRICTION: f32 = 0.0;
+    // const SCALING_FRICTION: f32 = 0.0;
 
     pub fn max_speed(speed_factor: f32) -> f32 {
         Self::MAX_SPEED * speed_factor
@@ -75,6 +80,14 @@ impl Player {
 
     pub fn accel(speed_factor: f32) -> f32 {
         Self::ACCEL * (speed_factor * speed_factor)
+    }
+
+    pub fn base_friction(speed_factor: f32) -> f32 {
+        Self::BASE_FRICTION * (speed_factor * speed_factor)
+    }
+
+    pub fn scaling_friction(speed_factor: f32) -> f32 {
+        Self::SCALING_FRICTION * (speed_factor)
     }
 
     pub fn handle_movement(&mut self, desired_dir: &[Vec2], accel: f32) -> &mut Self {
