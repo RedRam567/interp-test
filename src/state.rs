@@ -1,4 +1,5 @@
 use crate::Player;
+use crate::time::Timer;
 use macroquad::math::Vec2;
 use macroquad::window::screen_height;
 
@@ -105,11 +106,20 @@ pub struct GlobalState {
     /// Store input as fast as possible here until `update()`
     pub input_buffer: Vec<Vec2>,
     pub tick_settings: TickSettings,
+    pub is_fullscreen: bool,
+    pub update_timer: Timer,
+
+    pub dont_interpolate: bool,
 }
 
 impl GlobalState {
     pub fn new(tps: f32) -> Result<Self, ()> {
-        Ok(Self { input_buffer: Default::default(), tick_settings: TickSettings::new(tps)? })
+        let tick_settings = TickSettings::new(tps)?;
+        Ok(Self { update_timer: Timer::new(tick_settings.tick_len_secs), tick_settings, ..Default::default() })
+    }
+
+    pub fn tick_progress(&self) -> f32 {
+        1.0 - self.update_timer.time / self.tick_settings.tick_len_secs
     }
 }
 

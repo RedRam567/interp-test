@@ -2,7 +2,6 @@ mod dbg;
 
 use interp_test::state::{GameState, GlobalState};
 use interp_test::movement::Movement;
-use interp_test::time::Timer;
 use interp_test::{dbg_arrow, Player, DBG_INTERP, DBG_NOW, DBG_PREV};
 use macroquad::prelude::*;
 use macroquad::window::{screen_height, screen_width};
@@ -35,32 +34,58 @@ async fn main() {
     // let game = &mut game_state;
     // let mut prev_game = &mut prev_game_state;
     // TODO: move timer into state
-    let mut update_timer = Timer::new(global_state.tick_settings.tick_len_secs);
-    let mut dont_interpolate = false;
-    let mut is_fullscreen = false;
-    // dbg!(SPEED_FACTOR);
+    // let mut update_timer = Timer::new(global_state.tick_settings.tick_len_secs);
+    // let mut dont_interpolate = false;
+
     loop {
         // game_state.player.handle_movement(PLAYER_MAX_SPEED);
 
         let delta_time = get_frame_time();
-        let ready_to_update = update_timer.decrement(delta_time);
+        let ready_to_update = global_state.update_timer.decrement(delta_time);
         // HACK: prevent mega extrapolating when tps > fps
         // currently: if fps > tps, tps = fps
         // TODO: render thread
-        update_timer.decrement(0.0);
-        update_timer.decrement(0.0);
-        update_timer.decrement(0.0);
-        update_timer.decrement(0.0);
-        update_timer.decrement(0.0);
-        update_timer.decrement(0.0);
-        update_timer.decrement(0.0);
+        global_state.update_timer.decrement(0.0);
+        global_state.update_timer.decrement(0.0);
+        global_state.update_timer.decrement(0.0);
+        global_state.update_timer.decrement(0.0);
+        global_state.update_timer.decrement(0.0);
+        global_state.update_timer.decrement(0.0);
+        global_state.update_timer.decrement(0.0);
 
+        // Input handling
+        // HACK: ugly bool
+        let close =  pre_update(&mut global_state);
+        if close {
+            break
+        }
+
+        // Update
+        if ready_to_update {
+            update(&mut game_state, &mut global_state);
+            global_state.input_buffer.clear()
+        }
+
+        // Drawing
+        // let mut tick_progress = 1.0 - update_timer.time / global_state.tick_settings.tick_len_secs;
+        let mut tick_progress = global_state.tick_progress();
+        if global_state.dont_interpolate {
+            tick_progress = 1.0;
+        }
+
+        draw(&game_state, &global_state, tick_progress);
+
+        next_frame().await; // forced vsync :/ disable on Linux with `vblank_mode=0 cargo run`
+    }
+}
+
+fn pre_update(global_state: &mut GlobalState) -> bool {
         // close game
         if (is_key_down(KeyCode::LeftControl) || is_key_down(KeyCode::RightControl))
             && (is_key_down(KeyCode::C) || is_key_down(KeyCode::Q))
             || is_key_down(KeyCode::Escape)
         {
-            break;
+            return true;
         }
 
         // fullscreening
@@ -70,8 +95,8 @@ async fn main() {
         if (is_key_down(KeyCode::LeftAlt) || is_key_down(KeyCode::RightAlt))
             && is_key_pressed(KeyCode::Enter)
         {
-            is_fullscreen = !is_fullscreen;
-            set_fullscreen(is_fullscreen);
+            global_state.is_fullscreen = !global_state.is_fullscreen;
+            set_fullscreen(global_state.is_fullscreen);
         }
 
         // Modify timescale
@@ -82,7 +107,7 @@ async fn main() {
                 timescale = 1.0;
             }
             tick_settings.set_timescale(timescale);
-            update_timer.update_from_tick_settings(tick_settings);
+            global_state.update_timer.update_from_tick_settings(tick_settings);
         }
 
         if is_key_pressed(KeyCode::F4) || is_key_pressed(KeyCode::KpAdd) {
@@ -92,14 +117,15 @@ async fn main() {
                 timescale = 1.0;
             }
             tick_settings.set_timescale(timescale);
-            update_timer.update_from_tick_settings(tick_settings);
+            global_state.update_timer.update_from_tick_settings(tick_settings);
         }
 
+        // Modify tps
         if is_key_pressed(KeyCode::F5) {
             let tick_settings = &mut global_state.tick_settings;
             if let Ok(new) = tick_settings.set_tps(tick_settings.tps - 5.0) {
                 *tick_settings = new;
-                update_timer.update_from_tick_settings(tick_settings);
+                global_state.update_timer.update_from_tick_settings(tick_settings);
             }
         }
 
@@ -107,36 +133,21 @@ async fn main() {
             let tick_settings = &mut global_state.tick_settings;
             if let Ok(new) = tick_settings.set_tps(tick_settings.tps + 5.0) {
                 *tick_settings = new;
-                update_timer.update_from_tick_settings(tick_settings);
+                global_state.update_timer.update_from_tick_settings(tick_settings);
             }
         }
 
-        // Input and Update
-        handle_inputs(&mut global_state.input_buffer); // as close to update as possible
-        if ready_to_update {
-            // prev_game_state = game_state.clone();
-            game_state.advance_tick();
-            update(&mut game_state, &mut global_state);
-            global_state.input_buffer.clear()
-        }
-
         if is_key_pressed(KeyCode::I) {
-            dont_interpolate = !dont_interpolate;
+            global_state.dont_interpolate = !global_state.dont_interpolate;
         }
 
-        // Drawing
-        let mut tick_progress = 1.0 - update_timer.time / global_state.tick_settings.tick_len_secs;
-        if dont_interpolate {
-            tick_progress = 1.0;
-        }
+        handle_inputs(&mut global_state.input_buffer); // as close to update as possible
 
-        draw(&game_state, &global_state, tick_progress);
-
-        next_frame().await; // forced vsync :/ disable on Linux with `vblank_mode=0 cargo run`
-    }
+        false
 }
 
-fn update(game: &mut GameState, global_state: &mut GlobalState) {
+fn update(game: &mut  GameState, global_state: & GlobalState) {
+    game.advance_tick();
     let speed_factor = global_state.tick_settings.speed_factor;
     let player = &mut game.current_tick_mut().player;
     let center = Vec2::new(screen_width() / 2.0, screen_height() / 2.0);
