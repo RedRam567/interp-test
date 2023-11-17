@@ -62,7 +62,7 @@ async fn main() {
 
         // Update
         if ready_to_update {
-            update(&mut game_state, &mut global_state);
+            update(&mut game_state, &global_state);
             global_state.input_buffer.clear()
         }
 
@@ -125,8 +125,19 @@ fn pre_update(game: &mut GameState, global_state: &mut GlobalState) -> bool {
             _ = global_state.set_tps(game, global_state.tick_settings.tps + 5.0);
         }
 
+        if is_key_pressed(KeyCode::F7) {
+            _ = global_state.set_buffer_secs(game, global_state.tick_settings.buffer_secs - 0.05);
+        }
+
+        if is_key_pressed(KeyCode::F8) {
+            _ = global_state.set_buffer_secs(game, global_state.tick_settings.buffer_secs + 0.05);
+        }
+
         if is_key_pressed(KeyCode::I) {
             global_state.dont_interpolate = !global_state.dont_interpolate;
+        }
+        if is_key_pressed(KeyCode::O) {
+            global_state.dbg_buffer = !global_state.dbg_buffer;
         }
 
         handle_inputs(&mut global_state.input_buffer); // as close to update as possible
@@ -173,15 +184,17 @@ fn draw(game: &GameState, global_state: &GlobalState, t: f32) {
 
     // FIXME: increasing tps during runtime past initial value crashes
     // dbg tick buffer
-    for i in (0..global_state.tick_settings.buffer_len - 1).rev() {
-        let buffer = &game.buffer;
-        // let prev = &game.get_prev_tick(i + 1).unwrap().player;
-        // let next = &game.get_prev_tick(i).unwrap().player;
-        // let prev = &buffer.get(i).unwrap().player;
-        // let next = &buffer.get(i + 1).unwrap().player;
-        let prev = &buffer.get_back(i + 1).unwrap().player;
-        let next = &buffer.get_back(i).unwrap().player;
-        next.draw(prev, t);
+    if global_state.dbg_buffer {
+        for i in (0..global_state.tick_settings.buffer_len - 1).rev() {
+            let buffer = &game.buffer;
+            // let prev = &game.get_prev_tick(i + 1).unwrap().player;
+            // let next = &game.get_prev_tick(i).unwrap().player;
+            // let prev = &buffer.get(i).unwrap().player;
+            // let next = &buffer.get(i + 1).unwrap().player;
+            let prev = &buffer.get_back(i + 1).unwrap().player;
+            let next = &buffer.get_back(i).unwrap().player;
+            next.draw(prev, t);
+        }
     }
 
     dbg::dbg_info(game, global_state, t);

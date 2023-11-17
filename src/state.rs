@@ -47,7 +47,7 @@ impl TickSettings {
     pub fn is_sane(&self) -> bool {
         self.tps >= 10.0
             && self.buffer_secs > 0.0
-            && self.buffer_len > 0
+            && self.buffer_len > 1
             && self.speed_factor.is_normal()
     }
 
@@ -69,8 +69,10 @@ impl TickSettings {
     pub fn set_tps(&self, tps: f32) -> Result<Self, ()> {
         let mut new = self.clone();
         let timescale = self.timescale();
+
         new.tps = tps;
         new = new.calculate()?;
+
         new.set_timescale(timescale);
         Ok(new)
     }
@@ -87,6 +89,18 @@ impl TickSettings {
         let scaled_tick_len = ideal_tick_len * timescale.recip();
         self.tick_len_secs = scaled_tick_len;
         self
+    }
+
+    pub fn set_buffer_secs(&mut self, secs: f32) -> Result<(), ()> {
+        let mut new = self.clone();
+        let timescale = self.timescale();
+
+        new.buffer_secs = secs;
+        new = new.calculate()?;
+        new.set_timescale(timescale);
+
+        *self = new;
+        Ok(())
     }
 }
 
@@ -111,6 +125,7 @@ pub struct GlobalState {
     pub update_timer: Timer,
 
     pub dont_interpolate: bool,
+    pub dbg_buffer: bool,
     // pub timings: Timings,
 }
 
@@ -132,6 +147,13 @@ impl GlobalState {
 
     pub fn set_tps(&mut self, game_state: &mut GameState, tps: f32) -> Result<(), ()> {
         self.tick_settings = self.tick_settings.set_tps(tps)?;
+        game_state.buffer.resize(self.tick_settings.buffer_len);
+        self.update_timer.update_from_tick_settings(&self.tick_settings);
+        Ok(())
+    }
+
+    pub fn set_buffer_secs(&mut self, game_state: &mut GameState, secs: f32) -> Result<(), ()> {
+        self.tick_settings.set_buffer_secs(secs)?;
         game_state.buffer.resize(self.tick_settings.buffer_len);
         self.update_timer.update_from_tick_settings(&self.tick_settings);
         Ok(())
