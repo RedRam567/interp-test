@@ -1,0 +1,23 @@
+- buffered average input
+- fixed ticks per second
+- fps independant updating
+- curvy interpolation, not just linear
+- runtime editing of tps and timescale (slow motions, fast motion)
+  - modifies player speed/acceleration/friction to remain "identical"
+- player controller
+  - buffered average input (reading input as fast as possible, not just once)
+  - acceleration
+  - friction
+- debug information
+  - green circle is current tick position
+  - red is previous
+  - black is rendered player location
+  - I to disable interpolation
+  - O to dbg show the tick buffer
+  - green line is last velocity
+  - red line is last acceleration
+  - blue line is average of all input dir since last tick
+
+missing:
+- multithreaded update/draw
+- server and client
