@@ -26,6 +26,22 @@ where
     f(&mut buffer).map(|_| buffer)
 }
 
+fn to_string2<F, E>(f: F, game: &GameState, global_state: &GlobalState) -> String
+where
+    F: FnMut(&mut dyn Write, &GameState, &GlobalState) -> Result<(), E>,
+{
+    try_to_string2(f, game, global_state).unwrap_or_default()
+}
+
+/// Convert an allocation-less formater fn to a string.
+fn try_to_string2<F, E>(mut f: F, game: &GameState, global_state: &GlobalState) -> Result<String, E>
+where
+    F: FnMut(&mut dyn Write, &GameState, &GlobalState) -> Result<(), E>,
+{
+    let mut buffer = String::new();
+    f(&mut buffer, game, global_state).map(|_| buffer)
+}
+
 // NOTE: see build.rs for these cfgs and env vars
 // formatcp and w.write_str reduced asm instructions from 44 to 4
 fn dbg_version(w: &mut dyn Write) -> Result<(), FmtError> {
@@ -64,6 +80,32 @@ fn dbg_resolution(w: &mut dyn Write) -> Result<(), FmtError> {
 
 fn dbg_fps(w: &mut dyn Write) -> Result<(), FmtError> {
     write!(w, "{:03} fps {:.8}ms", get_fps(), get_frame_time() * 1000.0)
+}
+
+fn dbg_player_pos(
+    w: &mut dyn Write, game: &GameState, global_state: &GlobalState,
+) -> Result<(), FmtError> {
+    let player = &game.current_tick().player;
+    let mov = &player.movement;
+    let xy = BetterVec2Display(mov.pos);
+    let speed = mov.vel.length();
+    let accel = mov.accel.length();
+    let vel = BetterVec2Display(mov.vel);
+    // let actual_accel = mov.player.;
+    write!(w, "XY: {:+010.5}, speed: {:+010.5}, vel: {:+010.5}, accel: {:+010.5}", xy, speed, vel, accel)
+}
+
+struct BetterVec2Display(Vec2);
+impl Display for BetterVec2Display {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let vec = self.0;
+        write!(f, "[")?;
+        vec.x.fmt(f)?;
+        write!(f, ", ")?;
+        vec.y.fmt(f)?;
+        write!(f, "]")?;
+        Ok(())
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash, Default)]
@@ -154,7 +196,11 @@ pub fn dbg_info(game: &GameState, global_state: &GlobalState, _t: f32) {
     draw_text(&format!(" buffer: len: {}, time: {}s, actual time: {}s", buffer_len, buffer_secs, tick_len_secs * *buffer_len as f32), 0.0, next_line(), TYPEFACE_SIZE, WHITE);
     let time_scale = tick_settings.timescale();
     draw_text(&format!(" timescale: {}, speed factor: {}, reference tps: {}", time_scale, speed_factor, TickSettings::REFERENCE_TPS), 0.0, next_line(), TYPEFACE_SIZE, WHITE);
+
     // draw_text(&format!(""), 0.0, next_line(), TYPEFACE_SIZE, WHITE);
     // draw_text(&format!("version: {}", env!("CARGO_PKG_VERSION")), 0.0, next_line(), TYPEFACE_SIZE, WHITE);
     // draw_text(&format!(" timescale: {}, speed factor: {}, reference tps: {}", time_scale, speed_factor, TickSettings::REFERENCE_TPS), 0.0, next_line(), TYPEFACE_SIZE, WHITE);
+
+    draw_text(&to_string2(dbg_player_pos, game, global_state), 0.0, next_line(), TYPEFACE_SIZE, WHITE);
+
 }
