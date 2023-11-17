@@ -1,13 +1,14 @@
+// mod timings;
+
+// use timings::*;
+pub mod ring_buffer;
+
 use crate::Player;
+use crate::state::ring_buffer::RingBuffer;
 use crate::time::Timer;
 use macroquad::math::Vec2;
 use macroquad::window::screen_height;
-
 use macroquad::window::screen_width;
-
-
-// use super::TICK_BUFFER_LEN;
-
 use std::collections::VecDeque;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -110,6 +111,7 @@ pub struct GlobalState {
     pub update_timer: Timer,
 
     pub dont_interpolate: bool,
+    // pub timings: Timings,
 }
 
 impl GlobalState {
@@ -120,6 +122,19 @@ impl GlobalState {
 
     pub fn tick_progress(&self) -> f32 {
         1.0 - self.update_timer.time / self.tick_settings.tick_len_secs
+    }
+
+    pub fn set_timescale(&mut self, timescale: f32) -> &mut Self {
+        self.tick_settings.set_timescale(timescale);
+        self.update_timer.update_from_tick_settings(&self.tick_settings);
+        self
+    }
+
+    pub fn set_tps(&mut self, game_state: &mut GameState, tps: f32) -> Result<(), ()> {
+        self.tick_settings = self.tick_settings.set_tps(tps)?;
+        game_state.buffer.resize(self.tick_settings.buffer_len);
+        self.update_timer.update_from_tick_settings(&self.tick_settings);
+        Ok(())
     }
 }
 
@@ -133,7 +148,7 @@ pub struct GameState {
     // /// Tick index, icreases every tick
     pub tick_number: usize,
     /// older ticks in front, newer in back
-    pub tick_state: VecDeque<TickState>,
+    pub buffer: RingBuffer<TickState>,
     // no global_state here because of (re)borrow issues
     // cant do self.prev_tick_mut() and &self.global_state
     // global_state: GlobalState,
@@ -142,21 +157,18 @@ pub struct GameState {
 #[allow(dead_code)]
 impl GameState {
     pub fn new(buffer_len: usize) -> Self {
-        Self { tick_state: VecDeque::with_capacity(buffer_len), ..Self::default() }
+        Self { buffer: RingBuffer::with_capacity(buffer_len), ..Self::default() }
     }
 
     pub fn init(&mut self) -> &mut Self {
         // let player = self.tick_state.front_mut().unwrap();
-        dbg!(self.tick_state.len());
+        dbg!(self.buffer.len());
         let mut player = Player::default();
         player.movement.pos.x = screen_width() / 2.0;
         player.movement.pos.y = screen_height() / 2.0;
 
         let first_tick = TickState { player };
-        for _ in 0..self.tick_state.capacity() {
-            self.tick_state.push_back(first_tick.clone());
-            // *state = first_tick.clone()
-        }
+        self.buffer.fill_to_capacity(&first_tick);
 
         self
     }
@@ -185,10 +197,10 @@ impl GameState {
     }
 
     pub fn current_tick(&self) -> &TickState {
-        self.tick_state.back().unwrap()
+        self.buffer.back().unwrap()
     }
     pub fn current_tick_mut(&mut self) -> &mut TickState {
-        self.tick_state.back_mut().unwrap()
+        self.buffer.back_mut().unwrap()
     }
 
     pub fn prev_tick(&self) -> &TickState {
@@ -203,12 +215,12 @@ impl GameState {
     /// Get the tick `tick` ticks in the past. 0 is current tick, 1 is previous tick.
     pub(crate) fn get_prev_tick(&self, tick: usize) -> Option<&TickState> {
         // VecDeque::back(): self.get(self.len.wrapping_sub(1))
-        self.tick_state.get(self.tick_state.len().wrapping_sub(1 + tick))
+        self.buffer.get(self.buffer.len().wrapping_sub(1 + tick))
     }
     /// Get the tick `tick` ticks in the past. 0 is current tick, 1 is previous tick.
     pub(crate) fn get_prev_tick_mut(&mut self, tick: usize) -> Option<&mut TickState> {
         // VecDeque::back_mut(): self.get_mut(self.len.wrapping_sub(1))
-        self.tick_state.get_mut(self.tick_state.len().wrapping_sub(1 + tick))
+        self.buffer.get_mut(self.buffer.len().wrapping_sub(1 + tick))
     }
 
     pub(crate) fn get_tick(&self, tick_number: usize) -> Option<&TickState> {
@@ -230,9 +242,9 @@ impl GameState {
         // NOTE:PANIC: only panics when not `init()`ed
 
         self.tick_number += 1;
-        let latest_tick = self.tick_state.back_mut().unwrap().clone();
-        self.tick_state.pop_front(); // remove oldest
-        self.tick_state.push_back(latest_tick); // copy latest
-        self.tick_state.back_mut().unwrap()
+        let latest_tick = self.buffer.back_mut().unwrap().clone();
+        self.buffer.pop_front(); // remove oldest
+        self.buffer.push_back(latest_tick); // copy latest
+        self.buffer.back_mut().unwrap()
     }
 }

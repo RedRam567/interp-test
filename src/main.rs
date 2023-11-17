@@ -29,7 +29,7 @@ async fn main() {
     // game_state.tick_number = (2i128.pow(64) - 100) as usize;
     // game_state.tick_number = 0;
     game_state.init();
-    dbg!(game_state.tick_state.len());
+    dbg!(game_state.buffer.len());
     // let mut prev_game_state = game_state.clone();
     // let game = &mut game_state;
     // let mut prev_game = &mut prev_game_state;
@@ -55,7 +55,7 @@ async fn main() {
 
         // Input handling
         // HACK: ugly bool
-        let close =  pre_update(&mut global_state);
+        let close =  pre_update(&mut game_state, &mut global_state);
         if close {
             break
         }
@@ -79,7 +79,7 @@ async fn main() {
     }
 }
 
-fn pre_update(global_state: &mut GlobalState) -> bool {
+fn pre_update(game: &mut GameState, global_state: &mut GlobalState) -> bool {
         // close game
         if (is_key_down(KeyCode::LeftControl) || is_key_down(KeyCode::RightControl))
             && (is_key_down(KeyCode::C) || is_key_down(KeyCode::Q))
@@ -101,40 +101,28 @@ fn pre_update(global_state: &mut GlobalState) -> bool {
 
         // Modify timescale
         if is_key_pressed(KeyCode::F3) || is_key_pressed(KeyCode::KpSubtract) {
-            let tick_settings = &mut global_state.tick_settings;
-            let mut timescale = tick_settings.timescale() / 1.25;
+            let mut timescale = global_state.tick_settings.timescale() / 1.25;
             if (timescale - 1.0).abs() < 0.05 {
                 timescale = 1.0;
             }
-            tick_settings.set_timescale(timescale);
-            global_state.update_timer.update_from_tick_settings(tick_settings);
+            global_state.set_timescale(timescale);
         }
 
         if is_key_pressed(KeyCode::F4) || is_key_pressed(KeyCode::KpAdd) {
-            let tick_settings = &mut global_state.tick_settings;
-            let mut timescale = tick_settings.timescale() * 1.25;
+            let mut timescale = global_state.tick_settings.timescale() * 1.25;
             if (timescale - 1.0).abs() < 0.05 {
                 timescale = 1.0;
             }
-            tick_settings.set_timescale(timescale);
-            global_state.update_timer.update_from_tick_settings(tick_settings);
+            global_state.set_timescale(timescale);
         }
 
         // Modify tps
         if is_key_pressed(KeyCode::F5) {
-            let tick_settings = &mut global_state.tick_settings;
-            if let Ok(new) = tick_settings.set_tps(tick_settings.tps - 5.0) {
-                *tick_settings = new;
-                global_state.update_timer.update_from_tick_settings(tick_settings);
-            }
+            _ = global_state.set_tps(game, global_state.tick_settings.tps - 5.0);
         }
 
         if is_key_pressed(KeyCode::F6) {
-            let tick_settings = &mut global_state.tick_settings;
-            if let Ok(new) = tick_settings.set_tps(tick_settings.tps + 5.0) {
-                *tick_settings = new;
-                global_state.update_timer.update_from_tick_settings(tick_settings);
-            }
+            _ = global_state.set_tps(game, global_state.tick_settings.tps + 5.0);
         }
 
         if is_key_pressed(KeyCode::I) {
@@ -185,11 +173,16 @@ fn draw(game: &GameState, global_state: &GlobalState, t: f32) {
 
     // FIXME: increasing tps during runtime past initial value crashes
     // dbg tick buffer
-    // for i in (0..global_state.tick_settings.buffer_len - 1).rev() {
-    //     let prev = &game.get_prev_tick(i + 1).unwrap().player;
-    //     let next = &game.get_prev_tick(i).unwrap().player;
-    //     next.draw(prev, t);
-    // }
+    for i in (0..global_state.tick_settings.buffer_len - 1).rev() {
+        let buffer = &game.buffer;
+        // let prev = &game.get_prev_tick(i + 1).unwrap().player;
+        // let next = &game.get_prev_tick(i).unwrap().player;
+        // let prev = &buffer.get(i).unwrap().player;
+        // let next = &buffer.get(i + 1).unwrap().player;
+        let prev = &buffer.get_back(i + 1).unwrap().player;
+        let next = &buffer.get_back(i).unwrap().player;
+        next.draw(prev, t);
+    }
 
     dbg::dbg_info(game, global_state, t);
 }
