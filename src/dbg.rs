@@ -95,6 +95,12 @@ fn dbg_player_pos(
     write!(w, "XY: {:+010.5}, speed: {:+010.5}, vel: {:+010.5}, accel: {:+010.5}", xy, speed, vel, accel)
 }
 
+fn dbg_player_line2(
+    w: &mut dyn Write, game: &GameState, global_state: &GlobalState,
+) -> Result<(), FmtError> {
+    write!(w, "Input averaging: {}", global_state.avg_strategy)
+}
+
 struct BetterVec2Display(Vec2);
 impl Display for BetterVec2Display {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -202,5 +208,6 @@ pub fn dbg_info(game: &GameState, global_state: &GlobalState, _t: f32) {
     // draw_text(&format!(" timescale: {}, speed factor: {}, reference tps: {}", time_scale, speed_factor, TickSettings::REFERENCE_TPS), 0.0, next_line(), TYPEFACE_SIZE, WHITE);
 
     draw_text(&to_string2(dbg_player_pos, game, global_state), 0.0, next_line(), TYPEFACE_SIZE, WHITE);
+    draw_text(&to_string2(dbg_player_line2, game, global_state), 0.0, next_line(), TYPEFACE_SIZE, WHITE);
 
 }

@@ -29,7 +29,7 @@ pub struct TickSettings {
 impl TickSettings {
     /// Reference ticks per seconds,`speed_factor` will be scaled according to this.
     /// At 30 tps, `speed_factor` will be 2.0. At 120 tps, `speed_factor` will be 0.5
-    pub const REFERENCE_TPS: f32 = 60.0;
+    pub const REFERENCE_TPS: f32 = 60.0; // TODO: replace with "1 tps"
     const DEFAULT_BUFFER: f32 = 0.25;
 
     /// Create and initialize

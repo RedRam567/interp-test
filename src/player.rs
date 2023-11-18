@@ -1,38 +1,82 @@
+use std::fmt::Display;
+
 use macroquad::prelude::*;
 
 use crate::movement::Movement;
-use crate::{DBG_NOW, DBG_PREV, lerp_precise_2};
+use crate::{lerp_precise_2, DBG_NOW, DBG_PREV};
 
+// TODO: list benefits
+// TODO: mean, ignore zero
+/// How to average the player input.
+/// # Philosophy
+/// You want to collect player input as often as possible to reduce latency,
+/// but also want want to run game logic at a fixed tps (for numerous benifits).
+/// So you have to average the player input during the last tick and use that
+/// for your desired direction.
+/// In reality you would probably just use mean or mean normalized and call it a
+/// day. This enum is for runtime experimenting of it.
+/// # Notes
+/// `MeanIgnoreZero` and `MeanNormalized` reduces the need for null cancelling movement
+/// by about 50% or smth but still allows for null movement (is that ever even useful?)
 #[derive(Debug, Default, Clone, Copy, PartialEq)]
 pub enum AveragingStrategy {
-    /// Latest
-    None,
-    /// Mean average
+    /// Worst latency, can miss inputs.
+    Oldest,
+    /// Best latency, can miss inputs.
+    Newest,
+    /// Mean average, fine grain control, potentially high latency.
     Mean,
-    /// Mean normalized to 1.0
+    /// Mean average with zero inputs ignored. I would Recomeneded for most scenarios.
+    /// Low latency for starting, slightly less fine grain control.
+    /// NOTE: if implementing on your own, it'd be better to ignore zeros when
+    /// reading input, rather than when updating next tick.
     #[default]
+    MeanIgnoreZero,
+    /// Mean normalized to 1.0. Possibly better than MeanIgnoreZero.
+    /// Lower latency while moving, but more "jittery", less fine grain control.
     MeanNormalized,
-    // 0 -> mean, 1.0 -> mean normalized, uses lerp
+    // Mean lerped with MeanNormalized. 0 -> mean, 1.0 -> Normalized
     MeanNormalizedPercent(f32),
+
+    // hmm very interesting middle ground between Mean and MeanIgnoreZero/Normalized
+    // MeanIgnoreFirstXZeros(usize),
 }
 
 impl AveragingStrategy {
     // expect about 33 items to average for 1000hz and 10 tps
     pub fn average(&self, dirs: &[Vec2]) -> Vec2 {
         match *self {
-            AveragingStrategy::None => Self::none(dirs),
+            AveragingStrategy::Oldest => Self::oldest(dirs),
+            AveragingStrategy::Newest => Self::newest(dirs),
             AveragingStrategy::Mean => Self::mean(dirs),
+            AveragingStrategy::MeanIgnoreZero => Self::mean_ignore_zero(dirs),
             AveragingStrategy::MeanNormalized => Self::mean_normalized(dirs),
-            AveragingStrategy::MeanNormalizedPercent(percent) => Self::mean_normalized_percent(dirs, percent),
+            AveragingStrategy::MeanNormalizedPercent(percent) => {
+                Self::mean_normalized_percent(dirs, percent)
+            }
         }
     }
 
-    fn none(dirs: &[Vec2]) -> Vec2 {
+    fn oldest(dirs: &[Vec2]) -> Vec2 {
+        dirs.first().copied().unwrap_or(Vec2::ZERO)
+    }
+
+    fn newest(dirs: &[Vec2]) -> Vec2 {
         dirs.last().copied().unwrap_or(Vec2::ZERO)
     }
 
+    // FIXME: handle div zero
     fn mean(dirs: &[Vec2]) -> Vec2 {
-        dirs.iter().sum::<Vec2>() / dirs.len() as f32
+        dirs.iter().sum::<Vec2>() / dirs.len().max(1) as f32
+    }
+
+    //
+    fn mean_ignore_zero(dirs: &[Vec2]) -> Vec2 {
+        let (sum, n) = dirs.iter().fold((Vec2::ZERO, 0), |(sum, n), &dir| {
+            let is_not_zero = (dir != Vec2::ZERO) as usize;
+            (sum + dir, n + is_not_zero)
+        });
+        sum / n.max(1) as f32
     }
 
     fn mean_normalized(dirs: &[Vec2]) -> Vec2 {
@@ -44,6 +88,21 @@ impl AveragingStrategy {
         let norm = mean.normalize_or_zero();
         // precise because require output to be 0..=1
         lerp_precise_2(mean, norm, percent)
+    }
+}
+
+impl Display for AveragingStrategy {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            AveragingStrategy::Oldest => write!(f, "Oldest"),
+            AveragingStrategy::Newest => write!(f, "Newest"),
+            AveragingStrategy::Mean => write!(f, "Mean"),
+            AveragingStrategy::MeanIgnoreZero => write!(f, "MeanIgnoreZero"),
+            AveragingStrategy::MeanNormalized => write!(f, "MeanNormalized"),
+            AveragingStrategy::MeanNormalizedPercent(percent) => {
+                write!(f, "Mean {}% normalized", percent)
+            }
+        }
     }
 }
 

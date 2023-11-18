@@ -143,10 +143,12 @@ fn pre_update(game: &mut GameState, global_state: &mut GlobalState) -> bool {
         if is_key_pressed(KeyCode::P) {
             use interp_test::player::AveragingStrategy;
             global_state.avg_strategy = match global_state.avg_strategy {
-                AveragingStrategy::None => AveragingStrategy::Mean,
-                AveragingStrategy::Mean => AveragingStrategy::MeanNormalized,
-                AveragingStrategy::MeanNormalized => AveragingStrategy::None,
-                AveragingStrategy::MeanNormalizedPercent(_) => AveragingStrategy::None,
+                AveragingStrategy::Oldest => AveragingStrategy::Newest,
+                AveragingStrategy::Newest => AveragingStrategy::Mean,
+                AveragingStrategy::Mean => AveragingStrategy::MeanIgnoreZero,
+                AveragingStrategy::MeanIgnoreZero => AveragingStrategy::MeanNormalized,
+                AveragingStrategy::MeanNormalized => AveragingStrategy::Oldest,
+                _ => AveragingStrategy::Oldest,
             }
         }
 
