@@ -160,6 +160,10 @@ impl GlobalState {
         self.update_timer.update_from_tick_settings(&self.tick_settings);
         Ok(())
     }
+
+    pub fn set_avg_strategy(&mut self, avg_strat: AveragingStrategy) {
+        self.avg_strategy = avg_strat;
+    }
 }
 
 // #[derive(Clone, Debug, PartialEq, Default)]

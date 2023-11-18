@@ -1,7 +1,7 @@
 use macroquad::prelude::*;
 
 use crate::movement::Movement;
-use crate::{DBG_NOW, DBG_PREV, lerp_fast2, lerp_precise_2};
+use crate::{DBG_NOW, DBG_PREV, lerp_precise_2};
 
 #[derive(Debug, Default, Clone, Copy, PartialEq)]
 pub enum AveragingStrategy {

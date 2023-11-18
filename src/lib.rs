@@ -8,8 +8,6 @@ pub mod player;
 
 use macroquad::prelude::*;
 
-use crate::movement::Movement;
-
 const DBG_OPACITY: f32 = 0.25;
 const DBG_OPACITY2: f32 = 0.5;
 // const DBG_OPACITY: f32 = 0.0;

@@ -140,6 +140,16 @@ fn pre_update(game: &mut GameState, global_state: &mut GlobalState) -> bool {
             global_state.dbg_buffer = !global_state.dbg_buffer;
         }
 
+        if is_key_pressed(KeyCode::P) {
+            use interp_test::player::AveragingStrategy;
+            global_state.avg_strategy = match global_state.avg_strategy {
+                AveragingStrategy::None => AveragingStrategy::Mean,
+                AveragingStrategy::Mean => AveragingStrategy::MeanNormalized,
+                AveragingStrategy::MeanNormalized => AveragingStrategy::None,
+                AveragingStrategy::MeanNormalizedPercent(_) => AveragingStrategy::None,
+            }
+        }
+
         handle_inputs(&mut global_state.input_buffer); // as close to update as possible
 
         false
