@@ -3,13 +3,13 @@
 // use timings::*;
 pub mod ring_buffer;
 
-use crate::Player;
+use crate::player::AveragingStrategy;
+use crate::player::Player;
 use crate::state::ring_buffer::RingBuffer;
 use crate::time::Timer;
 use macroquad::math::Vec2;
 use macroquad::window::screen_height;
 use macroquad::window::screen_width;
-use std::collections::VecDeque;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct TickSettings {
@@ -123,9 +123,11 @@ pub struct GlobalState {
     pub tick_settings: TickSettings,
     pub is_fullscreen: bool,
     pub update_timer: Timer,
+    pub avg_strategy: AveragingStrategy,
 
     pub dont_interpolate: bool,
     pub dbg_buffer: bool,
+    // pub interpolate_
     // pub timings: Timings,
 }
 

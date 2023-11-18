@@ -2,7 +2,7 @@ mod dbg;
 
 use interp_test::state::{GameState, GlobalState};
 use interp_test::movement::Movement;
-use interp_test::{dbg_arrow, Player, DBG_INTERP, DBG_NOW, DBG_PREV};
+use interp_test::{dbg_arrow, player::Player, DBG_INTERP, DBG_NOW, DBG_PREV};
 use macroquad::prelude::*;
 use macroquad::window::{screen_height, screen_width};
 
@@ -150,8 +150,9 @@ fn update(game: &mut  GameState, global_state: & GlobalState) {
     let speed_factor = global_state.tick_settings.speed_factor;
     let player = &mut game.current_tick_mut().player;
     let center = Vec2::new(screen_width() / 2.0, screen_height() / 2.0);
+    let wish_dir = global_state.avg_strategy.average(&global_state.input_buffer);
     player
-        .handle_movement(&global_state.input_buffer, Player::accel(speed_factor))
+        .handle_movement(wish_dir, Player::accel(speed_factor))
         // .movement
         // .limit_speed(PLAYER_MAX_SPEED)
         ;
@@ -176,9 +177,13 @@ fn draw(game: &GameState, global_state: &GlobalState, t: f32) {
     // game.player.draw(&prev.player, 0.75);
     current.player.draw_dbg_prev(&prev.player, t);
     current.player.draw_dbg(&prev.player, t);
-    let real_time_avg_dir = interp_test::average_input(&global_state.input_buffer);
+    // let real_time_avg_dir = Player::average_input(&global_state.input_buffer);
+
+    let realtime_wish_dir = global_state.avg_strategy.average(&global_state.input_buffer);
+    // let real_time_avg_dir = 
+
     let interped_pos = prev.player.movement.interp(&current.player.movement, t);
-    dbg_arrow(interped_pos, real_time_avg_dir * 50.0, DBG_INTERP);
+    dbg_arrow(interped_pos, realtime_wish_dir * 50.0, DBG_INTERP);
     dbg_arrow(interped_pos, current.player.movement.accel, DBG_PREV);
     dbg_arrow(interped_pos, current.player.movement.vel, DBG_NOW);
 

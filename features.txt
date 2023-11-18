@@ -1,7 +1,7 @@
 - buffered average input
 - fixed ticks per second
 - fps independant updating
-- curvy interpolation, not just linear
+- curvy interpolation, not just linear (not perfect, uses weird method, any atempt to use splines was full of dragons)
 - runtime editing of tps and timescale (slow motions, fast motion)
   - modifies player speed/acceleration/friction to remain "identical"
 - player controller
