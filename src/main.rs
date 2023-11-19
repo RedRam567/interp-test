@@ -175,7 +175,6 @@ fn update(game: &mut  GameState, global_state: & GlobalState) {
     }
 
     player.movement.step(Player::max_speed(speed_factor), Player::base_friction(speed_factor), Player::scaling_friction(speed_factor));
-    dbg!(player.movement.vel.length());
 }
 
 // global state only needed for debug stuff rn

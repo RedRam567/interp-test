@@ -55,8 +55,6 @@ impl Movement {
         let amount = (base + scaling * speed).min(speed); // cap to speed so dont go negative
         let friction = dir * amount;
 
-        dbg!(friction);
-
         self.vel -= friction;
         self
     }
