@@ -116,6 +116,7 @@ pub struct TickState {
     pub player: Player,
 }
 
+/// Player input, interp settings, dbg info settings.
 #[derive(Clone, Debug, PartialEq, Default)]
 pub struct GlobalState {
     /// Store input as fast as possible here until `update()`
@@ -135,7 +136,11 @@ pub struct GlobalState {
 impl GlobalState {
     pub fn new(tps: f32) -> Result<Self, ()> {
         let tick_settings = TickSettings::new(tps)?;
-        Ok(Self { update_timer: Timer::new(tick_settings.tick_len_secs), tick_settings, ..Default::default() })
+        Ok(Self {
+            update_timer: Timer::new(tick_settings.tick_len_secs),
+            tick_settings,
+            ..Default::default()
+        })
     }
 
     pub fn tick_progress(&self) -> f32 {
@@ -238,7 +243,7 @@ impl GameState {
     }
 
     // TODO: decide on api, get tick n, or get tick that is n ticks in the past
-    
+
     /// Get the tick `tick` ticks in the past. 0 is current tick, 1 is previous tick.
     pub(crate) fn get_prev_tick(&self, tick: usize) -> Option<&TickState> {
         // VecDeque::back(): self.get(self.len.wrapping_sub(1))

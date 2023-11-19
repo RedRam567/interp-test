@@ -1,7 +1,7 @@
 mod dbg;
 
-use interp_test::state::{GameState, GlobalState};
 use interp_test::movement::Movement;
+use interp_test::state::{GameState, GlobalState};
 use interp_test::{dbg_arrow, player::Player, DBG_INTERP, DBG_NOW, DBG_PREV};
 use macroquad::prelude::*;
 use macroquad::window::{screen_height, screen_width};
@@ -23,7 +23,7 @@ use macroquad::window::{screen_height, screen_width};
 async fn main() {
     // let mut tick_settings = TickSettings::default().tps(30.0).calculate().unwrap();
 
-    let mut global_state = GlobalState::new(30.0).expect("tps too low");
+    let mut global_state = GlobalState::new(30.0).unwrap();
     let mut game_state = GameState::new(global_state.tick_settings.buffer_len);
     // game_state.tick_number = 2usize.pow(48);
     // game_state.tick_number = (2i128.pow(64) - 100) as usize;
@@ -54,9 +54,9 @@ async fn main() {
 
         // Input handling
         // HACK: ugly bool
-        let close =  pre_update(&mut game_state, &mut global_state);
+        let close = pre_update(&mut game_state, &mut global_state);
         if close {
-            break
+            break;
         }
 
         // Update
@@ -79,87 +79,97 @@ async fn main() {
 }
 
 fn pre_update(game: &mut GameState, global_state: &mut GlobalState) -> bool {
-        // close game
-        if (is_key_down(KeyCode::LeftControl) || is_key_down(KeyCode::RightControl))
-            && (is_key_down(KeyCode::C) || is_key_down(KeyCode::Q))
-            || is_key_down(KeyCode::Escape)
-        {
-            return true;
-        }
+    // close game
+    if (is_key_down(KeyCode::LeftControl) || is_key_down(KeyCode::RightControl))
+        && (is_key_down(KeyCode::C) || is_key_down(KeyCode::Q))
+        || is_key_down(KeyCode::Escape)
+    {
+        return true;
+    }
 
-        // fullscreening
-        // NOTE: unfullscreening is broken on x11 in macroquad (wtf?), also fullscreening loses
-        // focus because window hides for 1 micro second
-        // NOTE: fullscreen keybind in Kwin works to unfullscreen tho
-        if (is_key_down(KeyCode::LeftAlt) || is_key_down(KeyCode::RightAlt))
-            && is_key_pressed(KeyCode::Enter)
-        {
-            global_state.is_fullscreen = !global_state.is_fullscreen;
-            set_fullscreen(global_state.is_fullscreen);
-        }
+    // fullscreening
+    // NOTE: unfullscreening is broken on x11 in macroquad (wtf?), also fullscreening loses
+    // focus because window hides for 1 micro second
+    // NOTE: fullscreen keybind in Kwin works to unfullscreen tho
+    if (is_key_down(KeyCode::LeftAlt) || is_key_down(KeyCode::RightAlt))
+        && is_key_pressed(KeyCode::Enter)
+    {
+        global_state.is_fullscreen = !global_state.is_fullscreen;
+        set_fullscreen(global_state.is_fullscreen);
+    }
 
-        // Modify timescale
-        if is_key_pressed(KeyCode::F1) || is_key_pressed(KeyCode::KpSubtract) {
-            let mut timescale = global_state.tick_settings.timescale() / 1.25;
-            if (timescale - 1.0).abs() < 0.05 {
-                timescale = 1.0;
-            }
-            global_state.set_timescale(timescale);
+    // Modify timescale
+    if is_key_pressed(KeyCode::F1) || is_key_pressed(KeyCode::KpSubtract) {
+        let mut timescale = global_state.tick_settings.timescale() / 1.25;
+        if (timescale - 1.0).abs() < 0.05 {
+            timescale = 1.0;
         }
+        global_state.set_timescale(timescale);
+    }
 
-        if is_key_pressed(KeyCode::F2) || is_key_pressed(KeyCode::KpAdd) {
-            let mut timescale = global_state.tick_settings.timescale() * 1.25;
-            if (timescale - 1.0).abs() < 0.05 {
-                timescale = 1.0;
-            }
-            global_state.set_timescale(timescale);
+    if is_key_pressed(KeyCode::F2) || is_key_pressed(KeyCode::KpAdd) {
+        let mut timescale = global_state.tick_settings.timescale() * 1.25;
+        if (timescale - 1.0).abs() < 0.05 {
+            timescale = 1.0;
         }
+        global_state.set_timescale(timescale);
+    }
 
-        // Modify tps
-        if is_key_pressed(KeyCode::F3) {
-            _ = global_state.set_tps(game, global_state.tick_settings.tps - 5.0);
-        }
+    // Modify tps
+    if is_key_pressed(KeyCode::F3) {
+        _ = global_state.set_tps(game, global_state.tick_settings.tps - 5.0);
+    }
 
-        if is_key_pressed(KeyCode::F4) {
-            _ = global_state.set_tps(game, global_state.tick_settings.tps + 5.0);
-        }
+    if is_key_pressed(KeyCode::F4) {
+        _ = global_state.set_tps(game, global_state.tick_settings.tps + 5.0);
+    }
 
-        if is_key_pressed(KeyCode::F5) {
-            _ = global_state.set_buffer_secs(game, global_state.tick_settings.buffer_secs - 0.05);
-        }
+    if is_key_pressed(KeyCode::F5) {
+        _ = global_state.set_buffer_secs(game, global_state.tick_settings.buffer_secs - 0.05);
+    }
 
-        if is_key_pressed(KeyCode::F6) {
-            _ = global_state.set_buffer_secs(game, global_state.tick_settings.buffer_secs + 0.05);
-        }
+    if is_key_pressed(KeyCode::F6) {
+        _ = global_state.set_buffer_secs(game, global_state.tick_settings.buffer_secs + 0.05);
+    }
 
-        // Interp stuff
-        if is_key_pressed(KeyCode::U) {
-            global_state.dbg_hide_interp_info = !global_state.dbg_hide_interp_info;
-        }
-        if is_key_pressed(KeyCode::I) {
-            global_state.dont_interpolate = !global_state.dont_interpolate;
-        }
-        if is_key_pressed(KeyCode::O) {
-            global_state.dbg_buffer = !global_state.dbg_buffer;
-        }
-        if is_key_pressed(KeyCode::P) {
-            use interp_test::player::AveragingStrategy;
-            global_state.avg_strategy = match global_state.avg_strategy {
-                AveragingStrategy::Oldest => AveragingStrategy::Newest,
-                AveragingStrategy::Newest => AveragingStrategy::Mean,
-                AveragingStrategy::Mean => AveragingStrategy::MeanIgnoreZero,
-                AveragingStrategy::MeanIgnoreZero => AveragingStrategy::MeanNormalized,
-                AveragingStrategy::MeanNormalized => AveragingStrategy::Oldest,
-                _ => AveragingStrategy::Oldest,
-            }
-        }
+    // FIXME: spamming eats all ram (how??)
+    // if is_key_pressed(KeyCode::T) {
+    //     // *global_state = GlobalState::new(30.0).unwrap();
+    //     game.init();
+    // }
 
-        handle_inputs(&mut global_state.input_buffer); // as close to update as possible
+    // Interp stuff
+    if is_key_pressed(KeyCode::R) {
+        // reset
+        *global_state = GlobalState::new(30.0).unwrap();
+    }
+    if is_key_pressed(KeyCode::U) {
+        global_state.dbg_hide_interp_info = !global_state.dbg_hide_interp_info;
+    }
+    if is_key_pressed(KeyCode::I) {
+        global_state.dont_interpolate = !global_state.dont_interpolate;
+    }
+    if is_key_pressed(KeyCode::O) {
+        global_state.dbg_buffer = !global_state.dbg_buffer;
+    }
+    if is_key_pressed(KeyCode::P) {
+        use interp_test::player::AveragingStrategy;
+        global_state.avg_strategy = match global_state.avg_strategy {
+            AveragingStrategy::Oldest => AveragingStrategy::Newest,
+            AveragingStrategy::Newest => AveragingStrategy::Mean,
+            AveragingStrategy::Mean => AveragingStrategy::MeanIgnoreZero,
+            AveragingStrategy::MeanIgnoreZero => AveragingStrategy::MeanNormalized,
+            AveragingStrategy::MeanNormalized => AveragingStrategy::Oldest,
+            _ => AveragingStrategy::Oldest,
+        }
+    }
 
-        false
+    handle_inputs(&mut global_state.input_buffer); // as close to update as possible
+
+    false
 }
 
-fn update(game: &mut  GameState, global_state: & GlobalState) {
+fn update(game: &mut GameState, global_state: &GlobalState) {
     game.advance_tick();
     let speed_factor = global_state.tick_settings.speed_factor;
     let player = &mut game.current_tick_mut().player;
@@ -176,7 +186,11 @@ fn update(game: &mut  GameState, global_state: & GlobalState) {
         player.movement.pos = center;
     }
 
-    player.movement.step(Player::max_speed(speed_factor), Player::base_friction(speed_factor), Player::scaling_friction(speed_factor));
+    player.movement.step(
+        Player::max_speed(speed_factor),
+        Player::base_friction(speed_factor),
+        Player::scaling_friction(speed_factor),
+    );
 }
 
 // global state only needed for debug stuff rn
@@ -186,7 +200,6 @@ fn draw(game: &GameState, global_state: &GlobalState, t: f32) {
     clear_background(GRAY);
     current.player.draw(&prev.player, t);
 
-    
     if !global_state.dbg_hide_interp_info {
         // game.player.draw(&prev.player, 0.25);
         // game.player.draw(&prev.player, 0.5);
@@ -194,16 +207,16 @@ fn draw(game: &GameState, global_state: &GlobalState, t: f32) {
         current.player.draw_dbg_prev(&prev.player, t);
         current.player.draw_dbg(&prev.player, t);
         // let real_time_avg_dir = Player::average_input(&global_state.input_buffer);
-        
+
         let realtime_wish_dir = global_state.avg_strategy.average(&global_state.input_buffer);
-        // let real_time_avg_dir = 
-        
+        // let real_time_avg_dir =
+
         let interped_pos = prev.player.movement.interp(&current.player.movement, t);
         dbg_arrow(interped_pos, realtime_wish_dir * 50.0, DBG_INTERP);
         dbg_arrow(interped_pos, current.player.movement.accel, DBG_PREV);
         dbg_arrow(interped_pos, current.player.movement.vel, DBG_NOW);
     }
-    
+
     // FIXME: increasing tps during runtime past initial value crashes
     // dbg tick buffer
     if global_state.dbg_buffer {
@@ -220,7 +233,6 @@ fn draw(game: &GameState, global_state: &GlobalState, t: f32) {
     }
 
     dbg::dbg_info(game, global_state, t);
-
 }
 
 fn handle_inputs(input_buffer: &mut Vec<Vec2>) {
