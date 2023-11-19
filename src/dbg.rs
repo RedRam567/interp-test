@@ -159,6 +159,14 @@ impl Display for DaysHms {
     }
 }
 
+fn dbg_menu_print_string(str: &str, y: &mut f32) {
+    let mut next_line = || { *y += TYPEFACE_SIZE; *y };
+
+    for line in str.lines() {
+        draw_text(line, 0.0, next_line(), TYPEFACE_SIZE, WHITE)
+    }
+}
+
 // ping
 // lerp
 #[rustfmt::skip]
@@ -231,5 +239,20 @@ pub fn dbg_info(game: &GameState, global_state: &GlobalState, _t: f32) {
     draw_text(&to_string2(dbg_player_pos, game, global_state), 0.0, next_line(), TYPEFACE_SIZE, WHITE);
     draw_text(&to_string2(dbg_player_line2, game, global_state), 0.0, next_line(), TYPEFACE_SIZE, WHITE);
     draw_text(&to_string2(dbg_timings, game, global_state), 0.0, next_line(), TYPEFACE_SIZE, WHITE);
+
+    let controls = r#"Controls:
+- wasd, arrows to move
+- space teleport to middle
+- r reset settings
+- f1, f2 change timescale
+- f3, f4 change tps
+- f5, f6 change tick buffer length
+- u toggle tick visualization
+- i toggle interpolation
+- o toggle tick buffer visualization
+- p change input averaging method"#;
+
+    y += TYPEFACE_SIZE;
+    dbg_menu_print_string(controls, &mut y)
 
 }

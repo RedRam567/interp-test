@@ -39,8 +39,9 @@ async fn main() {
     // let mut update_timer = Timer::new(global_state.tick_settings.tick_len_secs);
     // let mut dont_interpolate = false;
     
-    #[allow(clippy::field_reassign_with_default)] // to match other all other uses
+    #[allow(clippy::field_reassign_with_default)] // to match other all other uses if Timings
     loop {
+        // need a local version else timings after draw are all wrong, because async?
         let mut current_timings = Timings::default();
         current_timings.start = Some(Instant::now());
 

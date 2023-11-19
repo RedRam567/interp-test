@@ -1,13 +1,13 @@
-- buffered average input
+- fps independant logic
 - fixed ticks per second
-- fps independant updating
+- buffered average input
 - curvy interpolation, not just linear (not perfect, uses weird method, any atempt to use splines was full of dragons)
-- runtime editing of tps and timescale (slow motions, fast motion)
-  - modifies player speed/acceleration/friction to remain "identical"
 - player controller
   - buffered average input (reading input as fast as possible, not just once)
   - acceleration
   - friction
+- runtime editing of tps and timescale (slow motions, fast motion)
+  - modifies player speed/acceleration/friction to remain "identical"
 - debug information
   - green circle is current tick position
   - red is previous
