@@ -119,7 +119,7 @@ impl Player {
     // const PLAYER_ACCEL: f32 = 5.0 * SPEED_FACTOR * SPEED_FACTOR;
     // const MAX_SPEED: f32 = 20.0;
     const MAX_SPEED: f32 = 15.0;
-    const ACCEL: f32 = 5.0;
+    const ACCEL: f32 = 2.5;
     const BASE_FRICTION: f32 = 0.5;
     const SCALING_FRICTION: f32 = 5e-2;
     // const BASE_FRICTION: f32 = 0.0;
