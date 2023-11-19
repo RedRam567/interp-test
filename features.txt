@@ -9,12 +9,10 @@
 - runtime editing of tps and timescale (slow motions, fast motion)
   - modifies player speed/acceleration/friction to remain "identical"
 - debug information
+  - a lot of info at the top
   - green circle is current tick position
   - red is previous
   - black is rendered player location
-  - I to disable interpolation
-  - O to dbg show the tick buffer
-  - P to change input averaging strategy
   - green line is last velocity
   - red line is last acceleration
   - blue line is average of all input dir since last tick
