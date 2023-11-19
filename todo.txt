@@ -2,8 +2,8 @@
 [x] gamestate module
 [x] friction (complicated)
 [x] fix dynamic tps (tick buffer)
-[] runtime interp strategy
-[] runtime input averaging strategy
+[x] runtime interp strategy
+[x] runtime input averaging strategy
 [] disable update, extrapolate
 
 [] networking
