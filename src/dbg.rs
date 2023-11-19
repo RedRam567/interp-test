@@ -92,7 +92,11 @@ fn dbg_player_pos(
     let accel = mov.accel.length();
     let vel = BetterVec2Display(mov.vel);
     // let actual_accel = mov.player.;
-    write!(w, "XY: {:+010.5}, speed: {:+010.5}, vel: {:+010.5}, accel: {:+010.5}", xy, speed, vel, accel)
+    write!(
+        w,
+        "XY: {:+010.5}, speed: {:+010.5}, vel: {:+010.5}, accel: {:+010.5}",
+        xy, speed, vel, accel
+    )
 }
 
 fn dbg_player_line2(

@@ -1,6 +1,6 @@
 use std::collections::VecDeque;
-use std::ops::{Deref, DerefMut};
 use std::fmt::Debug;
+use std::ops::{Deref, DerefMut};
 
 // TODO: another struct, tick buffer?
 // current tick + RingBuffer<(usize, T)> ? can draw thread infer?
@@ -61,7 +61,6 @@ impl<T> RingBuffer<T> {
 }
 
 impl<T: Clone> RingBuffer<T> {
-
     pub fn fill_to_capacity(&mut self, value: &T) {
         for _ in 0..self.capacity() {
             self.push_back(value.clone())
@@ -89,7 +88,7 @@ impl<T: Clone> RingBuffer<T> {
             // Growing
             let additional = additional as usize;
             self.reserve_exact(additional);
-    
+
             let back = self.front().unwrap().clone();
             for _ in 0..additional {
                 self.push_front(back.clone())
@@ -111,7 +110,6 @@ impl<T> AsRef<VecDeque<T>> for RingBuffer<T> {
 impl<T> AsMut<VecDeque<T>> for RingBuffer<T> {
     fn as_mut(&mut self) -> &mut VecDeque<T> {
         &mut self.0
-
     }
 }
 

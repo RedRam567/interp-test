@@ -37,7 +37,6 @@ pub enum AveragingStrategy {
     MeanNormalized,
     // Mean lerped with MeanNormalized. 0 -> mean, 1.0 -> Normalized
     MeanNormalizedPercent(f32),
-
     // hmm very interesting middle ground between Mean and MeanIgnoreZero/Normalized
     // MeanIgnoreFirstXZeros(usize),
 }

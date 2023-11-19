@@ -32,7 +32,10 @@ fn main() {
     // re-export build env vars to idk normal env vars
     println!("cargo:rustc-env=PROFILE={}", env::var("PROFILE").unwrap());
     // make a little bit prettier
-    println!("cargo:rustc-env=HOST={}", env::var("HOST").unwrap().to_string().replace("unknown-", ""));
+    println!(
+        "cargo:rustc-env=HOST={}",
+        env::var("HOST").unwrap().to_string().replace("unknown-", "")
+    );
     let target = env::var("TARGET").unwrap().to_string().replace("unknown-", "");
     println!("cargo:rustc-env=TARGET={}", target);
 
@@ -44,7 +47,8 @@ fn main() {
     println!("cargo:rustc-env=BUILD_DATETIME={}", date_time);
 
     // "rustc 1.73.0 (cc66ad468 2023-10-03)" // also works with nightly
-    let rustc_version = cmd_output(Command::new("rustc").arg("-V")).unwrap_or_else(|_| "rustc UNKNOWN".to_string());
+    let rustc_version =
+        cmd_output(Command::new("rustc").arg("-V")).unwrap_or_else(|_| "rustc UNKNOWN".to_string());
     println!("cargo:rustc-env=BUILD_RUSTC_VERSION={}", rustc_version);
 }
 

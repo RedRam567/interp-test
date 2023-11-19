@@ -33,7 +33,8 @@ pub struct Movement {
 impl Movement {
     // TODO: movement2 class, with friction builtin
     pub fn step(&mut self, max_speed: f32, base_friction: f32, scaling_friction: f32) -> &mut Self {
-        self.apply_friction(base_friction, scaling_friction).step_frictionless(max_speed)
+        self.apply_friction(base_friction, scaling_friction)
+            .step_frictionless(max_speed)
     }
 
     /// Update player velocity and position

@@ -1,8 +1,8 @@
 pub mod movement;
-pub mod spline;
-pub mod time;
-pub mod state;
 pub mod player;
+pub mod spline;
+pub mod state;
+pub mod time;
 
 // pub mod dbg;
 
