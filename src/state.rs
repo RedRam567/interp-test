@@ -6,6 +6,7 @@ pub mod ring_buffer;
 use crate::player::AveragingStrategy;
 use crate::player::Player;
 use crate::state::ring_buffer::RingBuffer;
+use crate::time::Timings;
 use crate::time::Timer;
 use macroquad::math::Vec2;
 use macroquad::window::screen_height;
@@ -126,6 +127,7 @@ pub struct GlobalState {
     pub update_timer: Timer,
     pub avg_strategy: AveragingStrategy,
 
+    pub timings: Timings,
     pub dont_interpolate: bool,
     pub dbg_buffer: bool,
     pub dbg_hide_interp_info: bool,

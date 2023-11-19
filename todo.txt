@@ -4,7 +4,9 @@
 [x] fix dynamic tps (tick buffer)
 [x] runtime interp strategy
 [x] runtime input averaging strategy
-[] disable update, extrapolate
+[]  disable update, extrapolate
+[]  update, draw, total timers
+[]  better float format, width = integer part len,
 
 [] networking
     [x] ring buffer

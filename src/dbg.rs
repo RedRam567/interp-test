@@ -79,7 +79,7 @@ fn dbg_resolution(w: &mut dyn Write) -> Result<(), FmtError> {
 }
 
 fn dbg_fps(w: &mut dyn Write) -> Result<(), FmtError> {
-    write!(w, "{:03} fps {:.8}ms", get_fps(), get_frame_time() * 1000.0)
+    write!(w, "{:03} fps {:.8} ms", get_fps(), get_frame_time() * 1000.0)
 }
 
 fn dbg_player_pos(
@@ -103,6 +103,23 @@ fn dbg_player_line2(
     w: &mut dyn Write, game: &GameState, global_state: &GlobalState,
 ) -> Result<(), FmtError> {
     write!(w, "Input averaging: {}", global_state.avg_strategy)
+}
+
+fn dbg_timings(
+    w: &mut dyn Write, game: &GameState, global_state: &GlobalState,
+) -> Result<(), FmtError> {
+    let timings = &global_state.timings;
+    write!(
+        w,
+        // "Total: {:.9}, No wait: {:.9}, Pre update: {:.9}, Update: {:.9}, Draw: {:.9}, Waiting: {:.9}",
+        "Timings (ms): Loop Total: {: >10.7}, Waiting: {: >10.7}, Game loop: {: >10.7}, Input: {: >10.7}, Update: {: >10.7}, Draw: {: >10.7}",
+        timings.total_duration().as_secs_f32() * 1000.0,
+        timings.waiting_duration().as_secs_f32() * 1000.0,
+        timings.total_no_wait_duration().as_secs_f32() * 1000.0,
+        timings.pre_update_duration().as_secs_f32() * 1000.0,
+        timings.update_duration().as_secs_f32() * 1000.0,
+        timings.draw_duration().as_secs_f32() * 1000.0,
+    )
 }
 
 struct BetterVec2Display(Vec2);
@@ -213,5 +230,6 @@ pub fn dbg_info(game: &GameState, global_state: &GlobalState, _t: f32) {
 
     draw_text(&to_string2(dbg_player_pos, game, global_state), 0.0, next_line(), TYPEFACE_SIZE, WHITE);
     draw_text(&to_string2(dbg_player_line2, game, global_state), 0.0, next_line(), TYPEFACE_SIZE, WHITE);
+    draw_text(&to_string2(dbg_timings, game, global_state), 0.0, next_line(), TYPEFACE_SIZE, WHITE);
 
 }

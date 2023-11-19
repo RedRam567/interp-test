@@ -1,7 +1,10 @@
 mod dbg;
 
+use std::time::Instant;
+
 use interp_test::movement::Movement;
 use interp_test::state::{GameState, GlobalState};
+use interp_test::time::Timings;
 use interp_test::{dbg_arrow, player::Player, DBG_INTERP, DBG_NOW, DBG_PREV};
 use macroquad::prelude::*;
 use macroquad::window::{screen_height, screen_width};
@@ -22,7 +25,7 @@ use macroquad::window::{screen_height, screen_width};
 #[macroquad::main("interp test")]
 async fn main() {
     // let mut tick_settings = TickSettings::default().tps(30.0).calculate().unwrap();
-
+    
     let mut global_state = GlobalState::new(30.0).unwrap();
     let mut game_state = GameState::new(global_state.tick_settings.buffer_len);
     // game_state.tick_number = 2usize.pow(48);
@@ -35,9 +38,11 @@ async fn main() {
     // TODO: move timer into state
     // let mut update_timer = Timer::new(global_state.tick_settings.tick_len_secs);
     // let mut dont_interpolate = false;
-
+    
+    #[allow(clippy::field_reassign_with_default)] // to match other all other uses
     loop {
-        // game_state.player.handle_movement(PLAYER_MAX_SPEED);
+        let mut current_timings = Timings::default();
+        current_timings.start = Some(Instant::now());
 
         let delta_time = get_frame_time();
         let ready_to_update = global_state.update_timer.decrement(delta_time);
@@ -58,12 +63,18 @@ async fn main() {
         if close {
             break;
         }
+        current_timings.pre_update = Some(Instant::now());
+
 
         // Update
         if ready_to_update {
+            // std::thread::sleep(std::time::Duration::from_secs_f32(0.1));
             update(&mut game_state, &global_state);
             global_state.input_buffer.clear()
         }
+        current_timings.update = Some(Instant::now());
+
+
 
         // Drawing
         // let mut tick_progress = 1.0 - update_timer.time / global_state.tick_settings.tick_len_secs;
@@ -71,10 +82,14 @@ async fn main() {
         if global_state.dont_interpolate {
             tick_progress = 1.0;
         }
-
+        
         draw(&game_state, &global_state, tick_progress);
+        // std::thread::sleep(std::time::Duration::from_secs_f32(0.1));
+        current_timings.draw = Some(Instant::now());
 
         next_frame().await; // forced vsync :/ disable on Linux with `vblank_mode=0 cargo run`
+        current_timings.waiting = Some(Instant::now());
+        global_state.timings = current_timings;
     }
 }
 
