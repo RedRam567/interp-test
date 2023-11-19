@@ -127,6 +127,7 @@ pub struct GlobalState {
 
     pub dont_interpolate: bool,
     pub dbg_buffer: bool,
+    pub dbg_hide_interp_info: bool,
     // pub interpolate_
     // pub timings: Timings,
 }

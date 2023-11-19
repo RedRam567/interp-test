@@ -133,13 +133,16 @@ fn pre_update(game: &mut GameState, global_state: &mut GlobalState) -> bool {
             _ = global_state.set_buffer_secs(game, global_state.tick_settings.buffer_secs + 0.05);
         }
 
+        // Interp stuff
+        if is_key_pressed(KeyCode::U) {
+            global_state.dbg_hide_interp_info = !global_state.dbg_hide_interp_info;
+        }
         if is_key_pressed(KeyCode::I) {
             global_state.dont_interpolate = !global_state.dont_interpolate;
         }
         if is_key_pressed(KeyCode::O) {
             global_state.dbg_buffer = !global_state.dbg_buffer;
         }
-
         if is_key_pressed(KeyCode::P) {
             use interp_test::player::AveragingStrategy;
             global_state.avg_strategy = match global_state.avg_strategy {
@@ -183,21 +186,25 @@ fn draw(game: &GameState, global_state: &GlobalState, t: f32) {
     let prev = game.prev_tick();
     clear_background(GRAY);
     current.player.draw(&prev.player, t);
-    // game.player.draw(&prev.player, 0.25);
-    // game.player.draw(&prev.player, 0.5);
-    // game.player.draw(&prev.player, 0.75);
-    current.player.draw_dbg_prev(&prev.player, t);
-    current.player.draw_dbg(&prev.player, t);
-    // let real_time_avg_dir = Player::average_input(&global_state.input_buffer);
 
-    let realtime_wish_dir = global_state.avg_strategy.average(&global_state.input_buffer);
-    // let real_time_avg_dir = 
-
-    let interped_pos = prev.player.movement.interp(&current.player.movement, t);
-    dbg_arrow(interped_pos, realtime_wish_dir * 50.0, DBG_INTERP);
-    dbg_arrow(interped_pos, current.player.movement.accel, DBG_PREV);
-    dbg_arrow(interped_pos, current.player.movement.vel, DBG_NOW);
-
+    
+    if !global_state.dbg_hide_interp_info {
+        // game.player.draw(&prev.player, 0.25);
+        // game.player.draw(&prev.player, 0.5);
+        // game.player.draw(&prev.player, 0.75);
+        current.player.draw_dbg_prev(&prev.player, t);
+        current.player.draw_dbg(&prev.player, t);
+        // let real_time_avg_dir = Player::average_input(&global_state.input_buffer);
+        
+        let realtime_wish_dir = global_state.avg_strategy.average(&global_state.input_buffer);
+        // let real_time_avg_dir = 
+        
+        let interped_pos = prev.player.movement.interp(&current.player.movement, t);
+        dbg_arrow(interped_pos, realtime_wish_dir * 50.0, DBG_INTERP);
+        dbg_arrow(interped_pos, current.player.movement.accel, DBG_PREV);
+        dbg_arrow(interped_pos, current.player.movement.vel, DBG_NOW);
+    }
+    
     // FIXME: increasing tps during runtime past initial value crashes
     // dbg tick buffer
     if global_state.dbg_buffer {
@@ -214,6 +221,7 @@ fn draw(game: &GameState, global_state: &GlobalState, t: f32) {
     }
 
     dbg::dbg_info(game, global_state, t);
+
 }
 
 fn handle_inputs(input_buffer: &mut Vec<Vec2>) {
