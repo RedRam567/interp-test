@@ -241,7 +241,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "interp_test"
+name = "interp-test"
 version = "0.1.0"
 dependencies = [
  "bezier-nd",

@@ -1,6 +1,6 @@
 #!/bin/sh
 set -x
-NAME=interp_test
+NAME=interp-test
 # ASSETS="assets"
 package_dir="$CARGO_TARGET_DIR/package"
 # package_dir="package"
