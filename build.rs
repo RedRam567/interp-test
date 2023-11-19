@@ -20,11 +20,28 @@ use std::env;
 use std::process::Command;
 
 fn main() {
+    let pretend_debug = env::var("BUILDRS_PRETEND_DEBUG").unwrap_or_default() == "1";
+
     if let Ok(profile) = env::var("PROFILE") {
-        if profile != "release" && profile != "debug" {
-            eprintln!("Warning: weird value in profile");
+        if pretend_debug {
+            println!("cargo:rustc-cfg=build=debug");
+        } else {
+            match profile.as_str() {
+                "release" => {
+                    println!("cargo:rustc-cfg=build={:?}", profile);
+                }
+                "debug" => {
+                    println!("cargo:rustc-cfg=build={:?}", profile);
+                }
+                _ => {
+                    panic!("Warning: weird value in profile");
+                }
+            }
         }
-        println!("cargo:rustc-cfg=build={:?}", profile);
+        // if profile != "release" && profile != "debug" {
+        //     eprintln!("Warning: weird value in profile");
+        // }
+        // println!("cargo:rustc-cfg=build={:?}", profile);
     } else {
         panic!("PROFILE env var not set");
     }
