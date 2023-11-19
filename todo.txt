@@ -14,7 +14,7 @@
     [] packet loss
 
 tick controls
-prev in movement?
+prev in movement? // no
 
 notes:
 server needs complete copy of the world
