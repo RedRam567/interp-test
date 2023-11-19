@@ -29,7 +29,6 @@ async fn main() {
     // game_state.tick_number = (2i128.pow(64) - 100) as usize;
     // game_state.tick_number = 0;
     game_state.init();
-    dbg!(game_state.buffer.len());
     // let mut prev_game_state = game_state.clone();
     // let game = &mut game_state;
     // let mut prev_game = &mut prev_game_state;

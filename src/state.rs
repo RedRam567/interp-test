@@ -190,8 +190,6 @@ impl GameState {
     }
 
     pub fn init(&mut self) -> &mut Self {
-        // let player = self.tick_state.front_mut().unwrap();
-        dbg!(self.buffer.len());
         let mut player = Player::default();
         player.movement.pos.x = screen_width() / 2.0;
         player.movement.pos.y = screen_height() / 2.0;
