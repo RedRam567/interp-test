@@ -100,7 +100,7 @@ fn pre_update(game: &mut GameState, global_state: &mut GlobalState) -> bool {
         }
 
         // Modify timescale
-        if is_key_pressed(KeyCode::F3) || is_key_pressed(KeyCode::KpSubtract) {
+        if is_key_pressed(KeyCode::F1) || is_key_pressed(KeyCode::KpSubtract) {
             let mut timescale = global_state.tick_settings.timescale() / 1.25;
             if (timescale - 1.0).abs() < 0.05 {
                 timescale = 1.0;
@@ -108,7 +108,7 @@ fn pre_update(game: &mut GameState, global_state: &mut GlobalState) -> bool {
             global_state.set_timescale(timescale);
         }
 
-        if is_key_pressed(KeyCode::F4) || is_key_pressed(KeyCode::KpAdd) {
+        if is_key_pressed(KeyCode::F2) || is_key_pressed(KeyCode::KpAdd) {
             let mut timescale = global_state.tick_settings.timescale() * 1.25;
             if (timescale - 1.0).abs() < 0.05 {
                 timescale = 1.0;
@@ -117,19 +117,19 @@ fn pre_update(game: &mut GameState, global_state: &mut GlobalState) -> bool {
         }
 
         // Modify tps
-        if is_key_pressed(KeyCode::F5) {
+        if is_key_pressed(KeyCode::F3) {
             _ = global_state.set_tps(game, global_state.tick_settings.tps - 5.0);
         }
 
-        if is_key_pressed(KeyCode::F6) {
+        if is_key_pressed(KeyCode::F4) {
             _ = global_state.set_tps(game, global_state.tick_settings.tps + 5.0);
         }
 
-        if is_key_pressed(KeyCode::F7) {
+        if is_key_pressed(KeyCode::F5) {
             _ = global_state.set_buffer_secs(game, global_state.tick_settings.buffer_secs - 0.05);
         }
 
-        if is_key_pressed(KeyCode::F8) {
+        if is_key_pressed(KeyCode::F6) {
             _ = global_state.set_buffer_secs(game, global_state.tick_settings.buffer_secs + 0.05);
         }
 
