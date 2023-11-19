@@ -3,7 +3,7 @@ use std::fmt::Display;
 use macroquad::prelude::*;
 
 use crate::movement::Movement;
-use crate::{lerp_precise_2, DBG_NOW, DBG_PREV};
+use crate::{lerp_precise2, DBG_NOW, DBG_PREV};
 
 // TODO: list benefits
 // TODO: mean, ignore zero
@@ -86,7 +86,7 @@ impl AveragingStrategy {
         let mean = Self::mean(dirs);
         let norm = mean.normalize_or_zero();
         // precise because require output to be 0..=1
-        lerp_precise_2(mean, norm, percent)
+        lerp_precise2(mean, norm, percent)
     }
 }
 
@@ -112,17 +112,11 @@ pub struct Player {
 
 impl Player {
     const PLAYER_SIZE: f32 = 10.0;
-    // const PLAYER_ACCEL: f32 = 1.0;
     const PLAYER_COLOR: Color = BLACK;
-    // const PLAYER_MAX_SPEED: f32 = 20.0 * SPEED_FACTOR * 1.0;
-    // const PLAYER_ACCEL: f32 = 5.0 * SPEED_FACTOR * SPEED_FACTOR;
-    // const MAX_SPEED: f32 = 20.0;
     const MAX_SPEED: f32 = 15.0;
     const ACCEL: f32 = 2.5;
     const BASE_FRICTION: f32 = 0.5;
     const SCALING_FRICTION: f32 = 5e-2;
-    // const BASE_FRICTION: f32 = 0.0;
-    // const SCALING_FRICTION: f32 = 0.0;
 
     pub fn max_speed(speed_factor: f32) -> f32 {
         Self::MAX_SPEED * speed_factor

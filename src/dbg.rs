@@ -83,7 +83,7 @@ fn dbg_fps(w: &mut dyn Write) -> Result<(), FmtError> {
 }
 
 fn dbg_player_pos(
-    w: &mut dyn Write, game: &GameState, global_state: &GlobalState,
+    w: &mut dyn Write, game: &GameState, _global_state: &GlobalState,
 ) -> Result<(), FmtError> {
     let player = &game.current_tick().player;
     let mov = &player.movement;
@@ -100,13 +100,13 @@ fn dbg_player_pos(
 }
 
 fn dbg_player_line2(
-    w: &mut dyn Write, game: &GameState, global_state: &GlobalState,
+    w: &mut dyn Write, _game: &GameState, global_state: &GlobalState,
 ) -> Result<(), FmtError> {
     write!(w, "Input averaging: {}", global_state.avg_strategy)
 }
 
 fn dbg_timings(
-    w: &mut dyn Write, game: &GameState, global_state: &GlobalState,
+    w: &mut dyn Write, _game: &GameState, global_state: &GlobalState,
 ) -> Result<(), FmtError> {
     let timings = &global_state.timings;
     write!(
@@ -160,7 +160,10 @@ impl Display for DaysHms {
 }
 
 fn dbg_menu_print_string(str: &str, y: &mut f32) {
-    let mut next_line = || { *y += TYPEFACE_SIZE; *y };
+    let mut next_line = || {
+        *y += TYPEFACE_SIZE;
+        *y
+    };
 
     for line in str.lines() {
         draw_text(line, 0.0, next_line(), TYPEFACE_SIZE, WHITE)

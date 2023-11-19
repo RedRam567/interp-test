@@ -1,16 +1,12 @@
 pub mod movement;
 pub mod player;
-pub mod spline;
 pub mod state;
 pub mod time;
-
-// pub mod dbg;
 
 use macroquad::prelude::*;
 
 const DBG_OPACITY: f32 = 0.25;
 const DBG_OPACITY2: f32 = 0.5;
-// const DBG_OPACITY: f32 = 0.0;
 pub const DBG_PREV: Color = Color { a: DBG_OPACITY, ..RED };
 pub const DBG_NOW: Color = Color { a: DBG_OPACITY, ..GREEN };
 pub const DBG_INTERP: Color = Color { a: DBG_OPACITY2, ..BLUE };
@@ -30,43 +26,11 @@ pub fn dbg_line(pos: Vec2, end: Vec2, color: Color) {
     draw_line(pos.x, pos.y, end.x, end.y, THICKNESS, color)
 }
 
-/// See <https://math.stackexchange.com/questions/13261/how-to-get-a-reflection-vector>
-pub fn vec2_mirror(ray: Vec2, mirror: Vec2, start: Vec2) -> Vec2 {
-    // ray - 2.0 * (ray.dot(mirror)) * mirror
-    // 2.0 * (ray.dot(mirror)) * mirror - ray
-    // 2.0 *(mirror.dot(ray))*mirror - ray
-    // 2.0 * ()
-    // mirror.project_onto(ray)
-    // mirror.project_onto(ray)
-    // (ray.dot(mirror))*mirror
-    let angle = ray.angle_between(mirror);
-    rotate_around_point(ray, start, angle)
-}
-
-fn rotate_around_point(ray: Vec2, point: Vec2, angle: f32) -> Vec2 {
-    let norm = ray - point;
-    let x = norm.x * angle.cos() - norm.y * angle.sin();
-    let y = norm.x * angle.sin() + norm.y * angle.cos();
-    Vec2::new(x, y) + point
-}
-
-pub fn rotate_around_origin(vec2: Vec2, angle: f32) -> Vec2 {
-    Vec2::new(vec2.y * f32::cos(angle), vec2.x * f32::sin(angle))
-}
-
 fn lerp_fast2(a: Vec2, b: Vec2, t: f32) -> Vec2 {
-    // Vec2 {
-    //     x: lerp_fast(a.x, b.x, t),
-    //     y: lerp_fast(a.y, b.y, t),
-    // };
     Vec2::new(lerp_fast(a.x, b.x, t), lerp_fast(a.y, b.y, t))
 }
 
-fn lerp_precise_2(a: Vec2, b: Vec2, t: f32) -> Vec2 {
-    // Vec2 {
-    //     x: lerp_fast(a.x, b.x, t),
-    //     y: lerp_fast(a.y, b.y, t),
-    // };
+fn lerp_precise2(a: Vec2, b: Vec2, t: f32) -> Vec2 {
     Vec2::new(lerp_precise(a.x, b.x, t), lerp_precise(a.y, b.y, t))
 }
 

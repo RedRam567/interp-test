@@ -62,16 +62,11 @@ impl<T> RingBuffer<T> {
 
 impl<T: Clone> RingBuffer<T> {
     pub fn fill_to_capacity(&mut self, value: &T) {
+        // let free_space = self.capacity() - self.len()
         for _ in 0..self.capacity() {
             self.push_back(value.clone())
         }
     }
-
-    // pub fn fill(&mut self, to: usize, value: &T) {
-    //     for elem in self.iter_mut() {
-    //         *elem = value.clone();
-    //     }
-    // }
 
     /// Resize to new len. If `new_len` is larger, fill new space with the last element.
     /// If `new_len` is smaller, drop elements from the back.
@@ -80,8 +75,6 @@ impl<T: Clone> RingBuffer<T> {
     /// - Allocates complety new [`VecDeque`] when shrinking.
     pub fn resize(&mut self, new_len: usize) {
         // if new_len is smaller, no-op
-        // if let Some(additional) = new_len as isize - (self.len()) {
-        // if let Some(additional) = new_len as isize - (self.len()) {
         let additional = new_len as isize - self.len() as isize;
 
         if additional >= 0 {

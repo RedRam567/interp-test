@@ -6,8 +6,8 @@ pub mod ring_buffer;
 use crate::player::AveragingStrategy;
 use crate::player::Player;
 use crate::state::ring_buffer::RingBuffer;
-use crate::time::Timings;
 use crate::time::Timer;
+use crate::time::Timings;
 use macroquad::math::Vec2;
 use macroquad::window::screen_height;
 use macroquad::window::screen_width;
@@ -131,8 +131,6 @@ pub struct GlobalState {
     pub dont_interpolate: bool,
     pub dbg_buffer: bool,
     pub dbg_hide_interp_info: bool,
-    // pub interpolate_
-    // pub timings: Timings,
 }
 
 impl GlobalState {
@@ -174,20 +172,14 @@ impl GlobalState {
     }
 }
 
-// #[derive(Clone, Debug, PartialEq, Default)]
-// struct ServerState {
-
-// }
-
 #[derive(Clone, Debug, PartialEq, Default)]
 pub struct GameState {
     // /// Tick index, icreases every tick
     pub tick_number: usize,
     /// older ticks in front, newer in back
     pub buffer: RingBuffer<TickState>,
-    // no global_state here because of (re)borrow issues
+    // NOTE: GlobalState isnt here because of (re)borrow issues
     // cant do self.prev_tick_mut() and &self.global_state
-    // global_state: GlobalState,
 }
 
 #[allow(dead_code)]
@@ -206,11 +198,6 @@ impl GameState {
 
         self
     }
-
-    // pub fn game_time(&self, tick_len_secs: f32) -> f64 {
-    //     // premptive f64
-    //     self.tick_number as f64 * tick_len_secs as f64
-    // }
 
     /// Returns whole seconds and ticks remainder passed
     pub fn gametime_passed(&self, tps: f32) -> (usize, usize) {

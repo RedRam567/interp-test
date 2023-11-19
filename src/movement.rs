@@ -39,18 +39,11 @@ impl Movement {
 
     /// Update player velocity and position
     pub fn step_frictionless(&mut self, max_speed: f32) -> &mut Self {
-        // self.prev_pos = self.pos;
-        // self.prev_vel = self.vel;
-        // self.prev_accel = self.accel;
         self.step_vel().limit_speed(max_speed).step_pos();
-        // self.step_pos().step_vel();
-        // if self.
         self
     }
 
     pub(crate) fn apply_friction(&mut self, base: f32, scaling: f32) -> &mut Self {
-        // const EPSILON: f32 = 0.1;
-        // self.vel += accel;
         let dir = self.vel.normalize_or_zero(); // TODO: doesn't scale with speed factor
         let speed = self.vel.length();
         let amount = (base + scaling * speed).min(speed); // cap to speed so dont go negative

@@ -9,36 +9,12 @@ use interp_test::{dbg_arrow, player::Player, DBG_INTERP, DBG_NOW, DBG_PREV};
 use macroquad::prelude::*;
 use macroquad::window::{screen_height, screen_width};
 
-// const UPDATES_PER_SECOND: f32 = 10.0;
-// const UPDATES_PER_SECOND: f32 = 15.0;
-// const TICK_LEN_SECS: f32 = 1.0 / UPDATES_PER_SECOND * 10.0;
-// const UPDATES_PER_SECOND: f32 = 30.0;
-// const TICK_LEN_SECS: f32 = 1.0 / UPDATES_PER_SECOND * 5.0;
-// const TICK_BUFFER_SECS: f32 = 0.25;
-// const TICK_BUFFER_LEN: usize = (TICK_BUFFER_SECS * UPDATES_PER_SECOND + 0.5) as usize; // + 0.5 as ceil is not const (wtf)
-
-// /// TODO:DOCS:
-// const SPEED_FACTOR: f32 = 60.0 / UPDATES_PER_SECOND;
-// const PLAYER_MAX_SPEED: f32 = 20.0 * SPEED_FACTOR * 1.0;
-// const PLAYER_ACCEL: f32 = 5.0 * SPEED_FACTOR * SPEED_FACTOR;
-
 #[macroquad::main("interp test")]
 async fn main() {
-    // let mut tick_settings = TickSettings::default().tps(30.0).calculate().unwrap();
-    
     let mut global_state = GlobalState::new(30.0).unwrap();
     let mut game_state = GameState::new(global_state.tick_settings.buffer_len);
-    // game_state.tick_number = 2usize.pow(48);
-    // game_state.tick_number = (2i128.pow(64) - 100) as usize;
-    // game_state.tick_number = 0;
     game_state.init();
-    // let mut prev_game_state = game_state.clone();
-    // let game = &mut game_state;
-    // let mut prev_game = &mut prev_game_state;
-    // TODO: move timer into state
-    // let mut update_timer = Timer::new(global_state.tick_settings.tick_len_secs);
-    // let mut dont_interpolate = false;
-    
+
     #[allow(clippy::field_reassign_with_default)] // to match other all other uses if Timings
     loop {
         // need a local version else timings after draw are all wrong, because async?
@@ -47,7 +23,7 @@ async fn main() {
 
         let delta_time = get_frame_time();
         let ready_to_update = global_state.update_timer.decrement(delta_time);
-        // HACK: prevent mega extrapolating when tps > fps
+        // HACK: prevents mega extrapolating when tps > fps
         // currently: if fps > tps, tps = fps
         // TODO: render thread
         global_state.update_timer.decrement(0.0);
@@ -66,29 +42,23 @@ async fn main() {
         }
         current_timings.pre_update = Some(Instant::now());
 
-
         // Update
         if ready_to_update {
-            // std::thread::sleep(std::time::Duration::from_secs_f32(0.1));
             update(&mut game_state, &global_state);
             global_state.input_buffer.clear()
         }
         current_timings.update = Some(Instant::now());
 
-
-
         // Drawing
-        // let mut tick_progress = 1.0 - update_timer.time / global_state.tick_settings.tick_len_secs;
         let mut tick_progress = global_state.tick_progress();
         if global_state.dont_interpolate {
             tick_progress = 1.0;
         }
-        
         draw(&game_state, &global_state, tick_progress);
-        // std::thread::sleep(std::time::Duration::from_secs_f32(0.1));
         current_timings.draw = Some(Instant::now());
 
-        next_frame().await; // forced vsync :/ disable on Linux with `vblank_mode=0 cargo run`
+        // has forced vsync :/ disable on Linux with `vblank_mode=0 cargo run`
+        next_frame().await;
         current_timings.waiting = Some(Instant::now());
         global_state.timings = current_timings;
     }
@@ -191,11 +161,7 @@ fn update(game: &mut GameState, global_state: &GlobalState) {
     let player = &mut game.current_tick_mut().player;
     let center = Vec2::new(screen_width() / 2.0, screen_height() / 2.0);
     let wish_dir = global_state.avg_strategy.average(&global_state.input_buffer);
-    player
-        .handle_movement(wish_dir, Player::accel(speed_factor))
-        // .movement
-        // .limit_speed(PLAYER_MAX_SPEED)
-        ;
+    player.handle_movement(wish_dir, Player::accel(speed_factor));
 
     if is_key_down(KeyCode::Space) {
         player.movement = Movement::default();
@@ -217,15 +183,10 @@ fn draw(game: &GameState, global_state: &GlobalState, t: f32) {
     current.player.draw(&prev.player, t);
 
     if !global_state.dbg_hide_interp_info {
-        // game.player.draw(&prev.player, 0.25);
-        // game.player.draw(&prev.player, 0.5);
-        // game.player.draw(&prev.player, 0.75);
         current.player.draw_dbg_prev(&prev.player, t);
         current.player.draw_dbg(&prev.player, t);
-        // let real_time_avg_dir = Player::average_input(&global_state.input_buffer);
 
         let realtime_wish_dir = global_state.avg_strategy.average(&global_state.input_buffer);
-        // let real_time_avg_dir =
 
         let interped_pos = prev.player.movement.interp(&current.player.movement, t);
         dbg_arrow(interped_pos, realtime_wish_dir * 50.0, DBG_INTERP);
@@ -238,10 +199,6 @@ fn draw(game: &GameState, global_state: &GlobalState, t: f32) {
     if global_state.dbg_buffer {
         for i in (0..global_state.tick_settings.buffer_len - 1).rev() {
             let buffer = &game.buffer;
-            // let prev = &game.get_prev_tick(i + 1).unwrap().player;
-            // let next = &game.get_prev_tick(i).unwrap().player;
-            // let prev = &buffer.get(i).unwrap().player;
-            // let next = &buffer.get(i + 1).unwrap().player;
             let prev = &buffer.get_back(i + 1).unwrap().player;
             let next = &buffer.get_back(i).unwrap().player;
             next.draw(prev, t);
